@@ -11,6 +11,14 @@ class Node:
 	def get_weight(self,neighbor):
 		return self.neighbours[neighbour]
 
+	def get_cost(self,node_id):
+		if self.id == node_id:
+			return 0
+		else if node_id not in self.neighbours.keys
+			return 999999999
+		else:
+			return self.neighbours[neighbour]
+
 	def get_pos:
 		return self.pos
 
@@ -49,8 +57,44 @@ class Graph
 		return self.node_list.keys()
 
 
-	def compute_MST():
-		pass
+def min_neighbor(node,edge_list):
+	
+	prev_min = 999999999999999999
+	win_node = None
+	for n in edge_list.keys
+		if(node!=n):
+			if(edge_list[n]<prev_min):
+				prev_min = edge_list[n]
+				win_node = n
+	return win_node
+
+
+def compute_MST(G):
+	new_graph = Graph()
+
+	for n in adjacency_matrix.keys()
+		new_graph.add_node(n)
+
+	adjacency_matrix = compute_adjacency_matrix(G)
+
+	for n in adjacency_matrix.keys()
+		win_node = min_neighbor(n,adjacency_matrix[n])
+		new_graph.add_neighbor(n,win_node)
+
+	return new_graph		
+
+
+def compute_adjacency_matrix(Graph):
+	matrix={}
+	for i in Graph.get_nodes
+		node = Graph.get_node(j)
+		row_matrix={}
+		for j in Graph.get_nodes
+			cost = node.get_cost(j)
+			row_matrix[j] = cost
+		matrix[i] = row_matrix
+	return matrix 
+
 
 
 
