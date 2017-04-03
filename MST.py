@@ -108,22 +108,66 @@ class MST:
 		for n in adjacency_matrix.keys():
 			new_graph.add_node(n,self.graph.get_node(n).get_pos())
 		
+		visited = []
+
+
 		for n in adjacency_matrix.keys():
 
+
 			if(i<self.graph.num_vertices-1):
+
 				win_node = self.min_neighbor(n,adjacency_matrix[n])
 				#new_graph.add_node(win_node,self.graph.get_node(win_node).get_pos())
 				row = adjacency_matrix[win_node]
 				row.pop(n)
 				adjacency_matrix[win_node] = row
-				#print(adjacency_matrix)
+				print(adjacency_matrix)
 				#print(n)
 				#print(win_node)
 				new_graph.add_edge(n,win_node)
 				#new_graph.print_graph()
 				#print("__________________________")
 				i=i+1
+		print(i)
 		return new_graph
+
+	def computeMST(self):
+		new_graph = Graph()
+		visited = []
+		adjacency_matrix={}
+		
+		for node in self.graph.get_nodes():
+			new_graph.add_node(node,self.graph.get_node(node).get_pos())
+		
+		current_node = self.graph.get_nodes()[0]
+		visited+=[current_node]
+		for i in range(1,len(self.graph.get_nodes())):
+			if(len(visited)<len(self.graph.get_nodes())):
+				neighbours = self.graph.get_node(current_node).get_neighbors()
+				row={}
+				for j in neighbours:
+					row[j] = self.graph.get_node(current_node).get_cost(j)
+				adjacency_matrix[current_node] = row
+				win_from,win_to = self.select_min_edge(adjacency_matrix,visited)
+				new_graph.add_edge(win_from,win_to)
+				current_node = win_to
+				visited += [current_node]
+		return new_graph
+
+	
+	def select_min_edge(self,matrix,visited):
+		prev_min = 999999999999999999
+		for row in matrix.keys():
+			for column in matrix[row].keys():
+				if column not in visited and matrix[row][column]<prev_min:
+					prev_min = matrix[row][column]
+					win_from = row
+					win_to = column
+		return win_from,win_to
+
+
+
+
 
 	def min_neighbor(self,node,edge_list):
 	
@@ -194,7 +238,7 @@ def main():
 	g.print_graph()
 
 	mst = MST(g)
-	new_graph = mst.compute_MST()
+	new_graph = mst.computeMST()
 	new_graph.print_graph()
 
 

@@ -67,7 +67,7 @@ def create_graph():
 	g.add_node('A',(300,500))
 	g.add_node('B',(150,400))
 	
-	g.add_node('D',(50,50))
+	g.add_node('D',(600,100))
 	g.add_node('E',(400,300))
 	g.add_node('C',(400,100))
 
@@ -118,6 +118,8 @@ print(way_lst)
 
 drone_x=way_lst[0][0]
 drone_y=way_lst[0][1]
+finalX = way_lst[len(way_lst)-1][0]
+finalY = way_lst[len(way_lst)-1][1]
 #drone_y=300-30
 #drone_x=400-30
 #print((drone_x-20,drone_y))
@@ -150,6 +152,9 @@ while not crashed:
 	#pygame.draw.circle(gameDisplay,(0,0,255),(500,500),6)
 	#pygame.draw.polygon(gameDisplay,(255,0,0),[(400,200),(400,400),(200,400),(200,200)])
 	#draw_map(way_lst,poly_list)
+	#mst = MST(graph)
+	#graph = mst.computeMST()
+	#graph.print_graph()
 	draw_graph(graph)
 	#draw_waypoint((120,250))
 	drone(drone_x,drone_y)
@@ -172,10 +177,13 @@ while not crashed:
 	drone_x,drone_y = update_pos(drone_x,drone_y,move_x,move_y)
 
 
-	if(drone_x>=600):
+	if(is_pos_equal((drone_x,drone_y),(finalX,finalY))):
 		mst = MST(graph)
-		graph = mst.compute_MST()
+		graph = mst.computeMST()
 		graph.print_graph()
+		#counter = 1
+		#way_lst = init_waypoint_list(graph)
+
 	pygame.display.update()
 	clock.tick(60)
 
