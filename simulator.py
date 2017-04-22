@@ -25,6 +25,8 @@ def init_waypoint_list(graph):
 		lst+=[node.get_pos()]
 	return lst
 
+
+
 def init_radius_points(width,height,radius):
 	pos_lst=[]
 	num_rows = width/(radius*2)
@@ -130,6 +132,7 @@ def init_mst_way_list(mst_graph):
 	visited=[]
 	way_lst=[]
 	visited+=[current_node]
+
 	while(len(visited)<len(mst_graph.get_nodes())):
 		next_node = get_closest_unvisited_node(mst_graph,visited,current_node)
 		if(next_node not in visited):
@@ -141,9 +144,6 @@ def init_mst_way_list(mst_graph):
 				visited+=[n]
 			way_lst+=[mst_graph.get_node(n).get_pos()]
 		current_node = next_node
-	print("Vistied:" + str(visited))
-	print(len(visited))
-	print(len(mst_graph.get_nodes()))
 	return way_lst
 
 def calc_euclidean_distance(pos1,pos2):
@@ -159,6 +159,7 @@ def get_closest_unvisited_node(graph,visited,node):
 			if(dist<prev_min):
 				prev_min = dist
 				min_node = n
+	#print(min_node)
 	return min_node
 
 def compute_path(graph,start_node,goal_node):
@@ -167,8 +168,14 @@ def compute_path(graph,start_node,goal_node):
 	openSet+=[start_node]
 	cameFrom = {}
 	gScore = {}
+	for node in graph.get_nodes():
+		gScore[node] = 999999999
+
 	gScore[start_node] = 0
 	fScore = {}
+	for n in graph.get_nodes():
+		fScore[node] = 999999999
+	
 	fScore[start_node] = calc_euclidean_distance(graph.get_node(start_node).get_pos(),graph.get_node(goal_node).get_pos())
 
 	while len(openSet) > 0:
@@ -208,6 +215,7 @@ def reconstruct_path(cameFrom,current):
 	while current in cameFrom.keys():
 		current = cameFrom[current]
 		total_path.append(current)
+	total_path.reverse()
 	return total_path
 
 
@@ -488,41 +496,30 @@ def create_graph():
 
 
 
+#the following code below has to do with the pygame graphics and display
 
 
 
-
-
-
-
-
-
-#poly_list = init_poly_list(5,2)
-#graph = create_graph()
-#mst = MST(graph)
-#graph = mst.computeMST()
-#way_lst = init_mst_way_list(graph)
-
-#print(way_lst)
-
-'''drone_x=way_lst[0][0]
-drone_y=way_lst[0][1]
-finalX = way_lst[len(way_lst)-1][0]
-finalY = way_lst[len(way_lst)-1][1]'''
 
 #points = init_radius_points(800,600,30)
+
+''' initializes the graph both obstacles and waypoints
+	and calculates minimum spanning tree
+'''
 poly_list,points = init_map(800,600,30)
 graph = create_graph_from_map(poly_list,points)
 mst = MST(graph)
 graph = mst.computeMST()
 way_lst = init_mst_way_list(graph)
+
+#first waypoint on graph
 drone_x=way_lst[0][0]
 drone_y=way_lst[0][1]
+
+#final waypoint on the graph
 finalX = way_lst[len(way_lst)-1][0]
 finalY = way_lst[len(way_lst)-1][1]
-#drone_y=300-30
-#drone_x=400-30
-#print((drone_x-20,drone_y))
+
 
 counter = 1
 def update_pos(drone_x,drone_y,speedX,speedY):
@@ -540,6 +537,23 @@ def is_pos_equal(pos1,pos2):
 		return True
 	else:
 		return False
+'''def main():
+	print("Hello")
+	graph = create_graph()
+	mst = MST(graph)
+	graph = mst.computeMST()
+	graph.print_graph()
+	for node in graph.get_nodes():
+		print(node + " " + str(graph.get_node(node).get_pos()))
+
+	path = init_mst_way_list(graph)
+	print(path)
+	print("Done")
+
+if __name__ == "__main__":
+	main()'''
+
+
 
 while not crashed:
 
@@ -548,22 +562,9 @@ while not crashed:
 			crashed = True
 		#print(event)
 	gameDisplay.fill(screenColor)
-	#pygame.draw.line(gameDisplay, (0,255,0), [0, 0], [50,30], 5)
-	#pygame.draw.circle(gameDisplay,(0,0,255),(500,500),6)
-	#pygame.draw.polygon(gameDisplay,(255,0,0),[(400,200),(400,400),(200,400),(200,200)])
-	#draw_map(way_lst,poly_list)
-	#mst = MST(graph)
-	#graph = mst.computeMST()
-	#graph.print_graph()
 	draw_graph(graph)
-	#draw_waypoint((120,250))
 	drone(drone_x,drone_y)
-
-	draw_waypoints(points)
 	draw_polys(poly_list)
-
-	#print(drone_x)
-	#print(drone_y)
 
 	print(graph.num_vertices)
 	print(counter)
@@ -582,7 +583,7 @@ while not crashed:
 	drone_x,drone_y = update_pos(drone_x,drone_y,move_x,move_y)
 
 
-	''''if(is_pos_equal((drone_x,drone_y),(finalX,finalY))):
+	'''if(is_pos_equal((drone_x,drone_y),(finalX,finalY))):
 		mst = MST(graph)
 		graph = mst.computeMST()
 		graph.print_graph()
