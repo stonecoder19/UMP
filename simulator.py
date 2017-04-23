@@ -2,6 +2,7 @@ import pygame
 import random
 from MST import *
 import math
+import sys
 
 
 
@@ -22,7 +23,7 @@ def init_waypoint_list(graph):
 	lst = []
 	for n in graph.get_nodes():
 		node = graph.get_node(n)
-		lst+=[node.get_pos()]
+		lst.append(node.get_pos())
 	return lst
 
 
@@ -33,7 +34,7 @@ def init_radius_points(width,height,radius):
 	num_cols = height/(radius*2)
 	for i in range(0,num_rows):
 		for j in range(0,num_cols):
-			pos_lst+=[((i*(radius*2)+(radius)),(j*(radius*2))+(radius))]
+			pos_lst.append(((i*(radius*2)+(radius)),(j*(radius*2))+(radius)))
 	return pos_lst
 
 def remove_points(square_list,points_list):
@@ -43,7 +44,7 @@ def remove_points(square_list,points_list):
 		for square in square_list:
 			if is_in_bounds(square,point):
 				return
-		lst+=[point]
+		lst.append(point)
 	return lst
 
 def create_rect_from_poly(polygon):
@@ -77,18 +78,19 @@ class Polygon:
 
 	def add_verts(self,points):
 		for p in points:
-			self.vertices+=[p]
+			self.vertices.append(p)
+	
 	def add_vert(self,point):
-		self.vertices+=[point]
+		self.vertices.append(point)
 
 	def get_vert_list(self):
 		vert_lst=[]
 		for v in self.vertices:
-			vert_lst+=[(v.x,v.y)]
+			vert_lst.append((v.x,v.y))
 		return vert_lst
 
 	def get_far_left(self):
-		prev_low=99999999
+		prev_low=sys.maxint
 		for vert in self.vertices:
 			if vert.x<prev_low:
 				prev_low = vert.x
@@ -103,7 +105,7 @@ class Polygon:
 		return prev_high
 
 	def get_far_top(self):
-		prev_low=9999999
+		prev_low=sys.maxint
 		for vert in self.vertices:
 			if vert.y <= prev_low:
 				prev_low = vert.y
@@ -131,27 +133,30 @@ def init_mst_way_list(mst_graph):
 	prev_node = current_node
 	visited=[]
 	way_lst=[]
-	visited+=[current_node]
+	visited.append(current_node)
 
 	while(len(visited)<len(mst_graph.get_nodes())):
 		next_node = get_closest_unvisited_node(mst_graph,visited,current_node)
 		if(next_node not in visited):
-			visited+=[next_node]
+			visited.append(next_node)
 		path = compute_path(mst_graph,current_node,next_node)
 		
 		for n in path:
 			if n not in visited:
-				visited+=[n]
-			way_lst+=[mst_graph.get_node(n).get_pos()]
+				visited.append(n)
+			way_lst.append(mst_graph.get_node(n).get_pos())
 		current_node = next_node
 	return way_lst
+
 
 def calc_euclidean_distance(pos1,pos2):
 	return math.sqrt(math.pow((pos1[0]-pos2[0]),2) + math.pow((pos1[1]-pos2[1]),2))
 
+
+
 def get_closest_unvisited_node(graph,visited,node):
 	min_node = None
-	prev_min = 9999999
+	prev_min = sys.maxint
 	for i in range(0,len(graph.get_nodes())):
 		n = graph.get_nodes()[i]
 		if(n not in visited):
@@ -159,22 +164,24 @@ def get_closest_unvisited_node(graph,visited,node):
 			if(dist<prev_min):
 				prev_min = dist
 				min_node = n
-	#print(min_node)
 	return min_node
 
+#compute shortest path from start goal to goal node using A*
 def compute_path(graph,start_node,goal_node):
 	closed = []
 	openSet=[]
-	openSet+=[start_node]
+	openSet.append(start_node)
 	cameFrom = {}
+	
 	gScore = {}
 	for node in graph.get_nodes():
-		gScore[node] = 999999999
+		gScore[node] = sys.maxint
 
 	gScore[start_node] = 0
+	
 	fScore = {}
 	for n in graph.get_nodes():
-		fScore[node] = 999999999
+		fScore[node] = sys.maxint
 	
 	fScore[start_node] = calc_euclidean_distance(graph.get_node(start_node).get_pos(),graph.get_node(goal_node).get_pos())
 
@@ -184,8 +191,7 @@ def compute_path(graph,start_node,goal_node):
 			return reconstruct_path(cameFrom,current_node)
 		
 		openSet = list(filter(lambda x: x!= current_node, openSet))
-		#print(openSet)
-		closed+=[current_node]
+		closed.append(current_node)
 		for neighbor in graph.get_node(current_node).get_neighbors():
 			if neighbor in closed:
 				continue
@@ -202,7 +208,7 @@ def compute_path(graph,start_node,goal_node):
 
 
 def lowest_fscore(openSet,fScore):
-	prev_min = 999999999
+	prev_min = sys.maxint
 	min_node = None
 	for node in openSet:
 		if(fScore[node]<prev_min):
@@ -217,42 +223,6 @@ def reconstruct_path(cameFrom,current):
 		total_path.append(current)
 	total_path.reverse()
 	return total_path
-
-
-
-
-
-
-def get_smallest_neighbor(graph,prev_node,neighbors,node,visited):
-	prev_low=9999999999
-	low_node=None
-	
-	for i in range(0,len(neighbors)):
-		if(neighbors[i] not in visited):
-			if(node.get_cost(neighbors[i])<prev_low):
-				prev_low = node.get_cost(neighbors[i])
-				low_node = neighbors[i]
-	
-	if low_node==None:
-		prev_low=9999999999
-		for n in neighbors:
-			visitable = False
-			for neigh in graph.get_node(n).get_neighbors():
-				if(neigh not in visited):
-					visitable = True
-					break
-			if(visitable==True):
-				prev_low = node.get_cost(n)
-				low_node = n
-				#print("Im")
-		if low_node==None:
-			low_node = prev_node
-
-
-	return low_node
-
-
-
 
 
 
@@ -308,6 +278,7 @@ def check_intersect(point1,point2,point3,point4):
 def init_map(width,height,drone_radius):
 	points_list = init_radius_points(width,height,drone_radius)
 	poly_list=[]
+	
 	polygon1 = Polygon("red")
 	polygon1.add_vert(Point(40,50))
 	polygon1.add_vert(Point(150,50))
@@ -343,11 +314,11 @@ def init_map(width,height,drone_radius):
 	polygon1.add_vert(Point(40,50))
 	polygon1.add_vert(Point(40,50))'''
 
-	poly_list+=[polygon1]
-	poly_list+=[polygon2]
-	poly_list+=[polygon3]
-	poly_list+=[polygon4]
-	poly_list+=[polygon5]
+	poly_list.append(polygon1)
+	poly_list.append(polygon2)
+	poly_list.append(polygon3)
+	poly_list.append(polygon4)
+	poly_list.append(polygon5)
 
 	new_points_list=[]
 	for p in points_list:
@@ -358,7 +329,7 @@ def init_map(width,height,drone_radius):
 				inBounds=True
 				break
 		if(inBounds==False):
-			new_points_list+=[p]
+			new_points_list.append(p)
 
 	return poly_list,new_points_list
 
@@ -390,9 +361,14 @@ def create_graph_from_map(poly_list,points_list):
 	for i in range(0,len(points_list)):
 		graph.add_node(str(i),points_list[i])
 
+	print("Number of Points "+ str(len(points_list)))
+	tot_count = len(points_list) * len(points_list)
+	count = 0
 
 	for j in range(0,len(points_list)):
 		for k in range (0, len(points_list)):
+			count+=1
+			print(str(count) +"/"+ str(tot_count))
 			if(j!=k):
 				isIntersect = False
 				for poly in poly_list:
@@ -406,17 +382,13 @@ def create_graph_from_map(poly_list,points_list):
 
 
 	
-
-
-
-
 def init_poly_list(poly_sides,num_poly):
 	poly_list = []
 	for i in range(0,num_poly):
 		vert_list=[]
 		for j in range(0,poly_sides):
-			vert_list+= [(random.randint(0,800),random.randint(0,600))]
-		poly_list+=[vert_list]
+			vert_list.append((random.randint(0,800),random.randint(0,600)))
+		poly_list.append(vert_list)
 	return poly_list
 
 def drone(x,y):
@@ -444,6 +416,7 @@ def draw_map(wapoint_list,polygon_list):
 
 	for polygon in polygon_list:
 		draw_polygon(polygon)
+
 def draw_line(point1,point2):
 	pygame.draw.line(gameDisplay, (0,255,0), [point1[0], point1[1]], [point2[0],point2[1]], 1)
 
@@ -506,10 +479,14 @@ def create_graph():
 ''' initializes the graph both obstacles and waypoints
 	and calculates minimum spanning tree
 '''
+print("Finding Points..")
 poly_list,points = init_map(800,600,30)
+print("Creating graph")
 graph = create_graph_from_map(poly_list,points)
 mst = MST(graph)
+print("Calculating mst")
 graph = mst.computeMST()
+print("Calculating waypoint list")
 way_lst = init_mst_way_list(graph)
 
 #first waypoint on graph
@@ -560,7 +537,7 @@ while not crashed:
 	for event in pygame.event.get():
 		if(event.type== pygame.QUIT):
 			crashed = True
-		#print(event)
+
 	gameDisplay.fill(screenColor)
 	draw_graph(graph)
 	drone(drone_x,drone_y)
@@ -578,7 +555,6 @@ while not crashed:
 	destY = way_lst[counter][1]
 	print(destX,destY)
 
-	#drone_x,drone_y = update_pos(drone_x,drone_y,2,0)
 	move_x,move_y = move_to(drone_x,drone_y,destX,destY,0.05)
 	drone_x,drone_y = update_pos(drone_x,drone_y,move_x,move_y)
 

@@ -1,4 +1,5 @@
 import math
+import sys
 
 
 class Node:
@@ -22,7 +23,7 @@ class Node:
 		if self.id == node_id:
 			return 0
 		elif node_id not in self.neighbours.keys():
-			return 999999999
+			return sys.maxint
 		else:
 			return self.neighbours[node_id]
 
@@ -38,7 +39,6 @@ class Graph:
 
 
 	def add_node(self,node_id,pos):
-		#print(node_id)
 		self.num_vertices = self.num_vertices + 1
 		new_node = Node(node_id,pos)
 		self.node_list[node_id] = new_node
@@ -53,7 +53,6 @@ class Graph:
 			self.add_node(node2,(0,0))'''
 		
 		cost = self.calculate_edge_cost(self.node_list[node1].get_pos(),self.node_list[node2].get_pos())
-		#print(cost)
 		self.node_list[node2].add_neighbor(node1,cost)
 		self.node_list[node1].add_neighbor(node2,cost)
 
@@ -75,7 +74,7 @@ class Graph:
 			print(n + ":  ")
 			for i in node.get_neighbors():
 				print(i +":" + str(node.get_cost(i))  +",")
-			#print("\n")
+			
 
 
 
@@ -96,28 +95,27 @@ class MST:
 				new_graph.add_node(node,self.graph.get_node(node).get_pos())
 		
 		current_node = self.graph.get_nodes()[0]
-		visited+=[current_node]
-		for i in range(1,len(self.graph.get_nodes())):
-			if(len(visited)<len(self.graph.get_nodes())):
-				neighbours = self.graph.get_node(current_node).get_neighbors()
-				row={}
-				for j in neighbours:
-					row[j] = self.graph.get_node(current_node).get_cost(j)
+		visited.append(current_node)
+		
+		while(len(visited)<len(self.graph.get_nodes())):
+			neighbours = self.graph.get_node(current_node).get_neighbors()
+			row={}
+			for j in neighbours:
+				row[j] = self.graph.get_node(current_node).get_cost(j)
 				
-				adjacency_matrix[current_node] = row
-				#print(current_node)
-				win_from,win_to = self.select_min_edge(adjacency_matrix,visited)
-				if(win_from==-1):
-					continue
-				new_graph.add_edge(win_from,win_to)
-				current_node = win_to
-				print(current_node + " " + str(len(self.graph.get_node(current_node).get_neighbors())))
-				visited += [current_node]
+			adjacency_matrix[current_node] = row
+
+			win_from,win_to = self.select_min_edge(adjacency_matrix,visited)
+			if(win_from==-1):
+				continue
+			new_graph.add_edge(win_from,win_to)
+			current_node = win_to
+			visited.append(current_node)
 		return new_graph
 
 	
 	def select_min_edge(self,matrix,visited):
-		prev_min = 999999999999999999
+		prev_min = sys.maxint
 		win_from=-1
 		win_to=-1
 		for row in matrix.keys():
@@ -134,7 +132,7 @@ class MST:
 
 	def min_neighbor(self,node,edge_list):
 	
-		prev_min = 999999999999999999
+		prev_min = sys.maxint
 		win_node = None
 		for n in edge_list.keys():
 			if(node!=n):
@@ -146,7 +144,6 @@ class MST:
 	def compute_adjacency_matrix(self):
 		matrix={}
 		for i in self.graph.get_nodes():
-			#print(i)
 			node = self.graph.get_node(i)
 			row_matrix={}
 			for j in self.graph.get_nodes():
@@ -207,9 +204,7 @@ def main():
 
 
 if __name__ == "__main__":
-
-
-    main()
+	main()
 
 
 
