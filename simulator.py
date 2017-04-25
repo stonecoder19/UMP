@@ -5,20 +5,6 @@ import math
 import sys
 
 
-
-
-
-
-pygame.init()
-gameDisplay = pygame.display.set_mode((800,600))
-
-pygame.display.set_caption('New Window')
-clock = pygame.time.Clock()
-
-screenColor = (255,255,255)
-droneSprite = pygame.image.load('drone.png')
-crashed = False
-
 def init_waypoint_list(graph):
 	lst = []
 	for n in graph.get_nodes():
@@ -29,13 +15,10 @@ def init_waypoint_list(graph):
 
 
 def init_radius_points(width,height,radius):
-	pos_lst=[]
 	num_rows = width/(radius*2)
 	num_cols = height/(radius*2)
-	for i in range(0,num_rows):
-		for j in range(0,num_cols):
-			pos_lst.append(((i*(radius*2)+(radius)),(j*(radius*2))+(radius)))
-	return pos_lst
+
+	return [((i*(radius*2)+(radius)), (j*(radius*2))+(radius)) for i in range(0,num_rows) for j in range(0,num_cols)]
 
 def remove_points(square_list,points_list):
 	lst=[]
@@ -308,11 +291,6 @@ def init_map(width,height,drone_radius):
 	polygon5.add_vert(Point(250,500))
 	polygon5.add_vert(Point(350,500))
 	polygon5.add_vert(Point(350,400))
-	'''polygon3 = Polygon("blue")
-	polygon1.add_vert(Point(40,50))
-	polygon1.add_vert(Point(40,50))
-	polygon1.add_vert(Point(40,50))
-	polygon1.add_vert(Point(40,50))'''
 
 	poly_list.append(polygon1)
 	poly_list.append(polygon2)
@@ -357,22 +335,25 @@ def check_if_edge_interects_poly(polygon,point1,point2):
 def create_graph_from_map(poly_list,points_list):
 	
 	graph = Graph()
+	length = len(points_list)
 	
-	for i in range(0,len(points_list)):
-		graph.add_node(str(i),points_list[i])
+	for i in range(0, length):
+		graph.add_node(str(i), points_list[i])
 
-	print("Number of Points "+ str(len(points_list)))
-	tot_count = len(points_list) * len(points_list)
+	print("Number of Points " + str(length))
+	tot_count = length * length
 	count = 0
 
-	for j in range(0,len(points_list)):
-		for k in range (0, len(points_list)):
+	for j in range(0, length):
+		for k in range (0, length):
 			count+=1
 			print(str(count) +"/"+ str(tot_count))
 			if(j!=k):
 				isIntersect = False
 				for poly in poly_list:
-					if(check_if_edge_interects_poly(poly,Point(points_list[j][0],points_list[j][1]),Point(points_list[k][0],points_list[k][1]))):
+					point1 = Point(points_list[j][0], points_list[j][1])
+					point2 = Point(points_list[k][0], points_list[k][1])
+					if(check_if_edge_interects_poly(poly, point1, point2)):
 						isIntersect = True
 						break
 				if(isIntersect==False):
@@ -479,26 +460,7 @@ def create_graph():
 ''' initializes the graph both obstacles and waypoints
 	and calculates minimum spanning tree
 '''
-print("Finding Points..")
-poly_list,points = init_map(800,600,30)
-print("Creating graph")
-graph = create_graph_from_map(poly_list,points)
-mst = MST(graph)
-print("Calculating mst")
-graph = mst.computeMST()
-print("Calculating waypoint list")
-way_lst = init_mst_way_list(graph)
 
-#first waypoint on graph
-drone_x=way_lst[0][0]
-drone_y=way_lst[0][1]
-
-#final waypoint on the graph
-finalX = way_lst[len(way_lst)-1][0]
-finalY = way_lst[len(way_lst)-1][1]
-
-
-counter = 1
 def update_pos(drone_x,drone_y,speedX,speedY):
 	drone_x+=speedX
 	drone_y+=speedY
@@ -514,29 +476,54 @@ def is_pos_equal(pos1,pos2):
 		return True
 	else:
 		return False
-'''def main():
-	print("Hello")
-	graph = create_graph()
-	mst = MST(graph)
-	graph = mst.computeMST()
-	graph.print_graph()
-	for node in graph.get_nodes():
-		print(node + " " + str(graph.get_node(node).get_pos()))
 
-	path = init_mst_way_list(graph)
-	print(path)
-	print("Done")
+# if __name__ == "__main__":
 
-if __name__ == "__main__":
-	main()'''
+# =================== BEGIN INITIALIZATION ======================
 
+pygame.init() # Initialize most needed pygame modules
+
+#Initializing extra modules
+gameDisplay = pygame.display.set_mode((800,600)) # Set window size
+pygame.display.set_caption('New Window') # Set window caption
+clock = pygame.time.Clock()
+screenColor = (255,255,255)
+droneSprite = pygame.image.load('drone.png')
+crashed = False
+gameDisplay.fill(screenColor)
+
+# =================== END INITIALIZATION ======================
+
+print("Finding Points..")
+poly_list, points = init_map(width=800, height=600, drone_radius=30)
+
+print("Creating graph")
+graph = create_graph_from_map(poly_list,points)
+mst = MST(graph)
+draw_graph(graph)
+draw_polys(poly_list)
+pygame.display.update()
+
+print("Calculating mst")
+graph = mst.computeMST()
+print("Calculating waypoint list")
+way_lst = init_mst_way_list(graph)
+
+#first waypoint on graph
+first = way_lst[0]
+drone_x= first[0]
+drone_y= first[1]
+
+#final waypoint on the graph
+final = way_lst[len(way_lst)-1]
+finalX = final[0]
+finalY = final[1]
+
+
+counter = 1
 
 
 while not crashed:
-
-	for event in pygame.event.get():
-		if(event.type== pygame.QUIT):
-			crashed = True
 
 	gameDisplay.fill(screenColor)
 	draw_graph(graph)
@@ -558,17 +545,12 @@ while not crashed:
 	move_x,move_y = move_to(drone_x,drone_y,destX,destY,0.05)
 	drone_x,drone_y = update_pos(drone_x,drone_y,move_x,move_y)
 
-
-	'''if(is_pos_equal((drone_x,drone_y),(finalX,finalY))):
-		mst = MST(graph)
-		graph = mst.computeMST()
-		graph.print_graph()
-		counter = 1
-		way_lst = init_mst_way_list(graph)
-		print(way_lst)'''
-
 	pygame.display.update()
 	clock.tick(60)
+
+	if(pygame.QUIT in [event.type for event in pygame.event.get()]):
+		print "You quit"
+		crashed = True
 
 
 pygame.quit()
