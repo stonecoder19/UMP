@@ -59,6 +59,23 @@ def is_in_bounds(rect,pos):
 	else:
 		return False
 
+def is_in_poly(polygon,point):
+	ref_point = Point(0,0)
+	intersect_count = 0
+	for i in range(0,len(polygon.vertices)):
+		first = polygon.vertices[i]
+		if(i==len(polygon.vertices)-1):
+			second = polygon.vertices[0]
+		else:
+			second = polygon.vertices[i+1]
+		if (check_intersect(ref_point,point,first,second)):
+			intersect_count+=1
+	if (intersect_count%2==0):
+		return False
+	else:
+		return True
+
+
 class Point:
 	def __init__(self,x,y):
 		self.x = x
@@ -324,8 +341,8 @@ def init_map(width,height,drone_radius):
 	for p in points_list:
 		inBounds = False
 		for poly in poly_list:
-			rect = create_rect_from_poly(poly)
-			if (is_in_bounds(rect,Point(p[0],p[1]))):
+			#rect = create_rect_from_poly(poly)
+			if (is_in_poly(poly,Point(p[0],p[1]))):
 				inBounds=True
 				break
 		if(inBounds==False):
@@ -334,7 +351,7 @@ def init_map(width,height,drone_radius):
 	return poly_list,new_points_list
 
 
-def check_if_edge_interects_poly(polygon,point1,point2):
+def check_if_edge_interects_poly_rect(polygon,point1,point2):
 	rect = create_rect_from_poly(polygon)
 
 	if(check_intersect(point1,point2,rect.top_left,rect.top_right)):
@@ -351,6 +368,16 @@ def check_if_edge_interects_poly(polygon,point1,point2):
 
 	return False
 
+def check_if_edge_interects_poly(polygon,point1,point2):
+	for i in range(0,len(polygon.vertices)):
+		first = polygon.vertices[i]
+		if(i==len(polygon.vertices)-1):
+			second = polygon.vertices[0]
+		else:
+			second = polygon.vertices[i+1]
+		if (check_intersect(point1,point2,first,second)):
+			return True
+	return False
 
 
 
@@ -377,6 +404,11 @@ def create_graph_from_map(poly_list,points_list):
 						break
 				if(isIntersect==False):
 					graph.add_edge(str(j),str(k))
+
+	for node_id in graph.get_nodes():
+		node = graph.get_node(node_id)
+		if(len(node.get_neighbors())<=0):
+			graph.remove_node(node_id)
 
 	return graph
 
@@ -483,7 +515,7 @@ print("Finding Points..")
 poly_list,points = init_map(800,600,30)
 print("Creating graph")
 graph = create_graph_from_map(poly_list,points)
-mst = MST(graph)
+'''mst = MST(graph)
 print("Calculating mst")
 graph = mst.computeMST()
 print("Calculating waypoint list")
@@ -495,7 +527,7 @@ drone_y=way_lst[0][1]
 
 #final waypoint on the graph
 finalX = way_lst[len(way_lst)-1][0]
-finalY = way_lst[len(way_lst)-1][1]
+finalY = way_lst[len(way_lst)-1][1]'''
 
 
 counter = 1
@@ -540,12 +572,12 @@ while not crashed:
 
 	gameDisplay.fill(screenColor)
 	draw_graph(graph)
-	drone(drone_x,drone_y)
+	#drone(drone_x,drone_y)
 	draw_polys(poly_list)
 
 	print(graph.num_vertices)
 	print(counter)
-	if counter<len(way_lst)-1:
+	'''if counter<len(way_lst)-1:
 		if is_pos_equal((drone_x,drone_y),way_lst[counter]):
 			print("Im here")
 			print((drone_x,drone_y))
@@ -556,7 +588,7 @@ while not crashed:
 	print(destX,destY)
 
 	move_x,move_y = move_to(drone_x,drone_y,destX,destY,0.05)
-	drone_x,drone_y = update_pos(drone_x,drone_y,move_x,move_y)
+	drone_x,drone_y = update_pos(drone_x,drone_y,move_x,move_y)'''
 
 
 	'''if(is_pos_equal((drone_x,drone_y),(finalX,finalY))):

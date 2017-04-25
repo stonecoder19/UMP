@@ -65,6 +65,11 @@ class Graph:
 		else:
 			return None
 
+	def remove_node(self,node_id):
+		if node_id in self.node_list:
+			self.node_list.pop(node_id)
+
+
 	def get_nodes(self):
 		return self.node_list.keys()
 
