@@ -572,7 +572,7 @@ while not crashed:
 
 	gameDisplay.fill(screenColor)
 	draw_graph(graph)
-	#drone(drone_x,drone_y)
+	drone(drone_x,drone_y)
 	draw_polys(poly_list)
 
 	print(graph.num_vertices)
