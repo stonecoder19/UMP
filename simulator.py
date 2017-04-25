@@ -515,7 +515,7 @@ print("Finding Points..")
 poly_list,points = init_map(800,600,30)
 print("Creating graph")
 graph = create_graph_from_map(poly_list,points)
-'''mst = MST(graph)
+mst = MST(graph)
 print("Calculating mst")
 graph = mst.computeMST()
 print("Calculating waypoint list")
@@ -527,7 +527,7 @@ drone_y=way_lst[0][1]
 
 #final waypoint on the graph
 finalX = way_lst[len(way_lst)-1][0]
-finalY = way_lst[len(way_lst)-1][1]'''
+finalY = way_lst[len(way_lst)-1][1]
 
 
 counter = 1
@@ -577,7 +577,7 @@ while not crashed:
 
 	print(graph.num_vertices)
 	print(counter)
-	'''if counter<len(way_lst)-1:
+	if counter<len(way_lst)-1:
 		if is_pos_equal((drone_x,drone_y),way_lst[counter]):
 			print("Im here")
 			print((drone_x,drone_y))
@@ -588,7 +588,7 @@ while not crashed:
 	print(destX,destY)
 
 	move_x,move_y = move_to(drone_x,drone_y,destX,destY,0.05)
-	drone_x,drone_y = update_pos(drone_x,drone_y,move_x,move_y)'''
+	drone_x,drone_y = update_pos(drone_x,drone_y,move_x,move_y)
 
 
 	'''if(is_pos_equal((drone_x,drone_y),(finalX,finalY))):
