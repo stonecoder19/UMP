@@ -145,29 +145,74 @@ class Polygon:
 
 
 
-def init_mst_way_list(mst_graph):
-	current_node = mst_graph.get_nodes()[0]
+def init_mst_way_list(mst_graph,start_pos):
+	current_node = mst_graph.find_node_from_position(start_pos)
+	if(current_node==None):
+		current_node = mst_graph.get_nodes()[0]
 	prev_node = current_node
 	visited=[]
 	way_lst=[]
+	way_lst.append(mst_graph.get_node(current_node).get_pos())
 	visited.append(current_node)
 
 	while(len(visited)<len(mst_graph.get_nodes())):
-		next_node = get_closest_unvisited_node(mst_graph,visited,current_node)
-		if(next_node not in visited):
-			visited.append(next_node)
-		path = compute_path(mst_graph,current_node,next_node)
+		next_node = get_closest_unvisited_neighbour(mst_graph,visited,current_node)
+		if(next_node==None):
+			next_node = get_closest_unvisited_node(mst_graph,visited,current_node)
+			if(next_node not in visited):
+				visited.append(next_node)
+				path = compute_path(mst_graph,current_node,next_node)
+				
+				for n in path:
+					if n not in visited:
+						visited.append(n)
+					way_lst.append(mst_graph.get_node(n).get_pos())
+		else:
+			if(next_node not in visited):
+				visited.append(next_node)
+			way_lst.append(mst_graph.get_node(next_node).get_pos())
 		
-		for n in path:
-			if n not in visited:
-				visited.append(n)
-			way_lst.append(mst_graph.get_node(n).get_pos())
+		print(len(visited))
+		print(current_node)
 		current_node = next_node
 	return way_lst
 
 
 def calc_euclidean_distance(pos1,pos2):
 	return math.sqrt(math.pow((pos1[0]-pos2[0]),2) + math.pow((pos1[1]-pos2[1]),2))
+
+
+def get_closest_unvisited_neighbour(graph,visited,node):
+	min_node=None
+	prev_min = sys.maxint
+	alt_lst=[]
+	for node_id in graph.get_node(node).get_neighbors():
+		if(node_id not in visited):
+			if(graph.get_node(node).get_cost(node_id)<prev_min):
+				prev_min = graph.get_node(node).get_cost(node_id)
+				min_node = node_id
+				alt_lst=[]
+			elif(graph.get_node(node).get_cost(node_id)==prev_min):
+				alt_lst.append(node_id)
+	if(len(alt_lst)>0):
+		prev_min=sys.maxint
+		min_el=None
+		for el in alt_lst:
+			if(count_unvisited_neighbours(graph,el,visited)<prev_min):
+				prev_min = count_unvisited_neighbours(graph,el,visited)
+				min_el = el
+		return min_el
+	else:
+		return min_node
+
+def count_unvisited_neighbours(graph,node,visited):
+	unvisited=0
+	for neighbor_id in graph.get_node(node).get_neighbors():
+		if neighbor_id not in visited:
+			unvisited+=1
+	return unvisited
+
+
 
 
 
@@ -198,7 +243,7 @@ def compute_path(graph,start_node,goal_node):
 	
 	fScore = {}
 	for n in graph.get_nodes():
-		fScore[node] = sys.maxint
+		fScore[n] = sys.maxint
 	
 	fScore[start_node] = calc_euclidean_distance(graph.get_node(start_node).get_pos(),graph.get_node(goal_node).get_pos())
 
@@ -214,7 +259,7 @@ def compute_path(graph,start_node,goal_node):
 				continue
 			temp_gScore = gScore[current_node] + graph.get_node(current_node).get_cost(neighbor)
 			if neighbor not in openSet:
-				openSet+=[neighbor]
+				openSet.append(neighbor)
 			elif temp_gScore >= gScore[neighbor]:
 				continue
 
@@ -426,8 +471,12 @@ def init_poly_list(poly_sides,num_poly):
 def drone(x,y):
 	gameDisplay.blit(droneSprite,(x-30,y-30))
 
-def draw_waypoint(pos):
-	pygame.draw.circle(gameDisplay,(0,0,255),pos,2)
+def draw_waypoint(node):
+	if (node.visited==True):
+		color = (0,0,255)
+	else:
+		color = (255,0,0)
+	pygame.draw.circle(gameDisplay,color,node.get_pos(),2)
 
 def draw_waypoints(points_list):
 	for point in points_list:
@@ -456,7 +505,7 @@ def draw_graph(graph):
 
 	for n in graph.get_nodes():
 		node = graph.get_node(n)
-		draw_waypoint(node.get_pos())
+		draw_waypoint(node)
 		for neighbor_id in node.get_neighbors():
 			neighbour_node = graph.get_node(neighbor_id)
 			draw_line(node.get_pos(),neighbour_node.get_pos())
@@ -519,7 +568,9 @@ mst = MST(graph)
 print("Calculating mst")
 graph = mst.computeMST()
 print("Calculating waypoint list")
-way_lst = init_mst_way_list(graph)
+way_lst = init_mst_way_list(graph,(-1,-1))
+graph.set_node_visited(graph.find_node_from_position(way_lst[0]))
+num_nodes = len(graph.get_nodes())
 
 #first waypoint on graph
 drone_x=way_lst[0][0]
@@ -563,7 +614,8 @@ if __name__ == "__main__":
 	main()'''
 
 
-
+stop = False
+tot_counter = 1
 while not crashed:
 
 	for event in pygame.event.get():
@@ -575,14 +627,37 @@ while not crashed:
 	drone(drone_x,drone_y)
 	draw_polys(poly_list)
 
-	print(graph.num_vertices)
+	#print(graph.num_vertices)
+	print("Number of Nodes: "+ str(num_nodes))
 	print(counter)
+	print(tot_counter)
 	if counter<len(way_lst)-1:
 		if is_pos_equal((drone_x,drone_y),way_lst[counter]):
+			tot_counter+=1
 			print("Im here")
 			print((drone_x,drone_y))
 			counter+=1
 			print(counter)
+			
+			current_node = graph.find_node_from_position(way_lst[counter-1])
+			graph.set_node_visited(current_node)
+			if (len(graph.get_visited_neighbours(current_node))==len(graph.get_node(current_node).get_neighbors())):
+				points_list=[]
+				for node_id in graph.get_nodes():
+					if(graph.get_node(node_id).visited):
+						graph.remove_node(node_id)
+					else:
+						points_list.append(graph.get_node(node_id).get_pos())
+				points_list.append(way_lst[counter-1])
+				poly_list,points = init_map(800,600,30)
+				graph = create_graph_from_map(poly_list,points_list)
+				mst = MST(graph)
+				graph = mst.computeMST()
+				graph.set_node_visited(graph.find_node_from_position(way_lst[counter-1]))
+				way_lst = init_mst_way_list(graph,way_lst[counter-1])
+				counter = 1
+
+	
 	destX = way_lst[counter][0]
 	destY = way_lst[counter][1]
 	print(destX,destY)

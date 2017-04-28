@@ -7,6 +7,7 @@ class Node:
 	def __init__(self,node_id,pos):
 		self.id = node_id
 		self.pos = pos
+		self.visited = False
 		self.neighbours={}
 
 	def add_neighbor(self,neighbour,cost):
@@ -18,6 +19,12 @@ class Node:
 
 	def get_neighbors(self):
 		return self.neighbours.keys()
+
+	 
+
+	def remove_neighbor(self,node_id):
+		if(node_id in self.neighbours.keys()):
+			self.neighbours.pop(node_id)
 
 	def get_cost(self,node_id):
 		if self.id == node_id:
@@ -64,10 +71,41 @@ class Graph:
 			return self.node_list[node_id]
 		else:
 			return None
+	def set_node_visited(self,node_id):
+		if node_id in self.node_list.keys():
+			self.node_list[node_id].visited = True
 
 	def remove_node(self,node_id):
 		if node_id in self.node_list:
+			for nodeid in self.node_list.keys():
+				node = self.get_node(nodeid)
+				node.remove_neighbor(node_id)
+				print("Yoowww")
 			self.node_list.pop(node_id)
+
+
+	def find_node_from_position(self,pos):
+		for node_id in self.node_list.keys():
+			if(self.node_list[node_id].get_pos()==pos):
+				return node_id
+		return None
+
+	def get_visited(self):
+		visited=[]
+		for node_id in self.node_list.keys():
+			node = self.get_node(node_id)
+			if(node.visited==True):
+				visited.append(node_id)
+		return visited
+
+	def get_visited_neighbours(self,node_id):
+		visited=[]
+		for nodeid in self.get_node(node_id).get_neighbors():
+			node = self.get_node(nodeid)
+			if(node.visited==True):
+				visited.append(nodeid)
+		return visited
+
 
 
 	def get_nodes(self):
