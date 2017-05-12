@@ -295,6 +295,7 @@ def onLine(point1,point2,point3):
 
 	return False
 
+
 def orientation(point1,point2,point3):
 
 	val = (point2.y-point1.y) * (point3.x - point2.x) - (point2.x-point1.x) * (point3.y-point2.y)
@@ -566,7 +567,7 @@ print("Creating graph")
 graph = create_graph_from_map(poly_list,points)
 mst = MST(graph)
 print("Calculating mst")
-graph = mst.computeMST()
+graph = mst.compute_mst()
 print("Calculating waypoint list")
 way_lst = init_mst_way_list(graph,(-1,-1))
 graph.set_node_visited(graph.find_node_from_position(way_lst[0]))
@@ -652,7 +653,7 @@ while not crashed:
 				poly_list,points = init_map(800,600,30)
 				graph = create_graph_from_map(poly_list,points_list)
 				mst = MST(graph)
-				graph = mst.computeMST()
+				graph = mst.compute_mst()
 				graph.set_node_visited(graph.find_node_from_position(way_lst[counter-1]))
 				way_lst = init_mst_way_list(graph,way_lst[counter-1])
 				counter = 1
