@@ -327,14 +327,14 @@ def create_graph_from_map(poly_list,points_list):
 	for i in range(0,len(points_list)):
 		graph.add_node(str(i),points_list[i])
 
-	print("Number of Points "+ str(len(points_list)))
+	# print("Number of Points "+ str(len(points_list)))
 	tot_count = len(points_list) * len(points_list)
 	count = 0
 
 	for j in range(0,len(points_list)):
 		for k in range (0, len(points_list)):
 			count+=1
-			print(str(count) +"/"+ str(tot_count))
+			# print(str(count) +"/"+ str(tot_count))
 			if(j!=k):
 				isIntersect = False
 				for poly in poly_list:
@@ -352,20 +352,21 @@ def create_graph_from_map(poly_list,points_list):
 	return graph
 
 def init_poly_list(poly_sides,num_poly):
-	poly_list = []
-	for i in range(0,num_poly):
-		vert_list=[]
-		for j in range(0,poly_sides):
-			vert_list.append((random.randint(0,800),random.randint(0,600)))
-		poly_list.append(vert_list)
-	return poly_list
+	# poly_list = []
+	# for i in range(0,num_poly):
+	# 	vert_list=[]
+	# 	for j in range(0,poly_sides):
+	# 		vert_list.append((random.randint(0,800),random.randint(0,600)))
+	# 	poly_list.append(vert_list)
+	# return poly_list
+	return [[(random.randint(0,800),random.randint(0,600)) for j in range(0, poly_sides)] for i in range(0, num_poly)]
 
 def drone(gameDisplay, droneSprite, x,y):
 	gameDisplay.blit(droneSprite,(x-30,y-30))
 
 def update_pos(drone_x,drone_y,speedX,speedY):
-	drone_x+=speedX
-	drone_y+=speedY
+	drone_x += speedX
+	drone_y += speedY
 	return drone_x,drone_y
 
 def move_to(current_x,current_y,desiredX,desiredY,kp):
@@ -374,7 +375,4 @@ def move_to(current_x,current_y,desiredX,desiredY,kp):
 	return move_x,move_y
 
 def is_pos_equal(pos1,pos2):
-	if(math.fabs((pos1[0]-pos2[0]))<=1 and math.fabs((pos1[1]-pos2[1]))<=1):
-		return True
-	else:
-		return False
+	return math.fabs((pos1[0]-pos2[0]))<=1 and math.fabs((pos1[1]-pos2[1]))<=1

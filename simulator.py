@@ -5,11 +5,11 @@ from utils.util import *
 from utils.gfx import *
 import math
 import sys
-from globals import crashed, gameDisplay, clock, screenColor, droneSprite
 
 def set_up_pygame():
 	"""
 	Initialize objects necessary for pygame
+	No longer used.
 	"""
 	pygame.init()
 	gameDisplay = pygame.display.set_mode((800,600))
@@ -22,7 +22,34 @@ def set_up_pygame():
 
 	return gameDisplay, clock, screenColor, droneSprite
 
+def logic(graph, visited, poly_list, counter, way_lst):
+	drone_x,drone_y = drone_coordinates
+	if counter<len(way_lst)-1:
+		counter+=1
+		
+		current_node = graph.find_node_from_position(way_lst[counter-1])
+		graph.set_node_visited(current_node)
+		visited += [graph.get_node(current_node).get_pos()]
+		if (len(graph.get_visited_neighbours(current_node))==len(graph.get_node(current_node).get_neighbors())):
+			points_list=[]
+			for node_id in graph.get_nodes():
+				if(graph.get_node(node_id).visited):
+					graph.remove_node(node_id)
+				else:
+					points_list.append(graph.get_node(node_id).get_pos())
+			points_list.append(way_lst[counter-1])
+			graph = create_graph_from_map(poly_list,points_list)
+			mst = MST(graph)
+			graph = mst.compute_mst()
+			graph.set_node_visited(graph.find_node_from_position(way_lst[counter-1]))
+			way_lst = init_mst_way_list(graph,way_lst[counter-1])
+			counter = 1
+	return graph, visited, poly_list, counter, way_lst
+
 def navigate(graph, drone_coordinates, poly_list, counter, way_lst):
+	"""
+	No longer used. See logic(graph, visited, poly_list, counter, way_lst)
+	"""
 	gameDisplay.fill(screenColor)
 	draw_graph(gameDisplay, graph)
 
@@ -31,17 +58,13 @@ def navigate(graph, drone_coordinates, poly_list, counter, way_lst):
 	drone(gameDisplay, droneSprite, drone_x,drone_y)
 	draw_polys(poly_list, gameDisplay)
 
-	#print(graph.num_vertices)
 	print("Number of Nodes: "+ str(num_nodes))
-	print(counter)
-	# print(tot_counter)
+	print "Counter: {}".format(counter)
 	if counter<len(way_lst)-1:
 		if is_pos_equal((drone_x,drone_y),way_lst[counter]):
-			# tot_counter+=1
-			print("Im here")
-			print((drone_x,drone_y))
+			print "Im here: ({}, {})".format(drone_x,drone_y)
 			counter+=1
-			print(counter)
+			print "Counter: {}".format(counter)
 			
 			current_node = graph.find_node_from_position(way_lst[counter-1])
 			graph.set_node_visited(current_node)
@@ -76,20 +99,19 @@ def navigate(graph, drone_coordinates, poly_list, counter, way_lst):
 
 if __name__ == '__main__':
 
-	gameDisplay, clock, screenColor, droneSprite = set_up_pygame()
 	crashed = False
 
-	print("Finding Points..")
+	# print("Finding Points..")
 	poly_list,points = init_map(800,600,30)
 
-	print("Creating graph")
+	# print("Creating graph")
 	graph = create_graph_from_map(poly_list,points)
 	mst = MST(graph)
 
-	print("Calculating mst")
+	# print("Calculating mst")
 	graph = mst.compute_mst()
 
-	print("Calculating waypoint list")
+	# print("Calculating waypoint list")
 	way_lst = init_mst_way_list(graph,(-1,-1))
 	graph.set_node_visited(graph.find_node_from_position(way_lst[0]))
 	num_nodes = len(graph.get_nodes())
@@ -103,23 +125,18 @@ if __name__ == '__main__':
 	finalX = way_lst[len(way_lst)-1][0]
 	finalY = way_lst[len(way_lst)-1][1]
 
-
 	counter = 1
 
-	# stop = False
-	# tot_counter = 1
+	visited = []
 
 	while not crashed:
 
-		graph, drone_coordinates, poly_list, counter, way_lst = navigate(graph, drone_coordinates, poly_list, counter, way_lst)
+		graph, visited, poly_list, counter, way_lst = logic(graph, visited, poly_list, counter, way_lst)
 
-		print "Counter {}".format(counter)
-
-		if(pygame.QUIT in [event.type for event in pygame.event.get()]):
-			print "You quit"
+		if not counter<len(way_lst)-1:
 			crashed = True
+			print visited
 
-	pygame.quit()
 	quit()
 
 
