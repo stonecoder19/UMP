@@ -133,6 +133,18 @@ def get_closest_unvisited_node(graph,visited,node):
 				min_node = n
 	return min_node
 
+def get_closest_node(graph,node_from):
+	min_node = None
+	prev_min = sys.maxint
+	for node_id in graph.get_nodes():
+		if(not node_id == node_from):
+			node = graph.get_node(node_id)
+			dist = calc_euclidean_distance(graph.get_node(node_from).get_pos(),node.get_pos())
+			if(dist<prev_min):
+				prev_min = dist
+				min_node = node_id
+	return min_node
+
 #compute shortest path from start goal to goal node using A*
 def compute_path(graph,start_node,goal_node):
 	closed = []
