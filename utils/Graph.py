@@ -157,6 +157,9 @@ class Graph:
         """
         return self.node_list.keys()
 
+    def has_node(self,node_id):
+        return self.node_list.has(node_id)
+
     def print_graph(self):
         """
         Prints out the graph in the format

@@ -70,14 +70,27 @@ def navigate(graph, drone_coordinates, poly_list, counter, way_lst):
 			graph.set_node_visited(current_node)
 			if (len(graph.get_visited_neighbours(current_node))==len(graph.get_node(current_node).get_neighbors())):
 				points_list=[]
+				last_node = graph.find_node_from_position(way_lst[counter-1])
+				old_graph = graph
 				for node_id in graph.get_nodes():
-					if(graph.get_node(node_id).visited):
+					if(graph.get_node(node_id).visited and not graph.get_node(node_id)==last_node):
 						graph.remove_node(node_id)
 					else:
 						points_list.append(graph.get_node(node_id).get_pos())
 				points_list.append(way_lst[counter-1])
 				poly_list,points = init_map(800,600,30)
 				graph = create_graph_from_map(poly_list,points_list)
+				
+				if(not graph.has_node(last_node)):
+					win_node = get_closest_node(graph,last_node)
+					path = compute_path(old_graph,last_node,win_node):
+					for p in path:
+						win_node = None
+						for poly in poly_list:
+							check_if_edge_interects_poly(poly,Point(points_list[j][0],points_list[j][1]),Point(points_list[k][0],points_list[k][1])))
+
+
+				
 				mst = MST(graph)
 				graph = mst.compute_mst()
 				graph.set_node_visited(graph.find_node_from_position(way_lst[counter-1]))
