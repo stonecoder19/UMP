@@ -99,6 +99,8 @@ def navigate(graph, drone_coordinates, poly_list, counter, way_lst):
 
 if __name__ == '__main__':
 
+	# gameDisplay, clock, screenColor, droneSprite = set_up_pygame()
+
 	crashed = False
 
 	# print("Finding Points..")
@@ -131,11 +133,17 @@ if __name__ == '__main__':
 
 	while not crashed:
 
+		# graph, drone_coordinates, poly_list, counter, way_lst = navigate(graph, drone_coordinates, poly_list, counter, way_lst)
 		graph, visited, poly_list, counter, way_lst = logic(graph, visited, poly_list, counter, way_lst)
 
 		if not counter<len(way_lst)-1:
 			crashed = True
 			print visited
+
+		# if(pygame.QUIT in [event.type for event in pygame.event.get()]):
+				# 	print "You quit"
+				# 	crashed = True
+				# 	print "Visited {} nodes".format(len(visited))	
 
 	quit()
 
