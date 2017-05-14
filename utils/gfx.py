@@ -16,7 +16,7 @@ def draw_polys(poly_list, gameDisplay):
 		draw_polygon(gameDisplay, polygon)
 
 def draw_polygon(gameDisplay, polygon):
-	print(polygon.get_vert_list())
+	#print(polygon.get_vert_list())
 	pygame.draw.polygon(gameDisplay,(255,0,0),polygon.get_vert_list())
 
 # def draw_map(wapoint_list,polygon_list):

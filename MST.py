@@ -46,9 +46,9 @@ class MST:
             adjacency_matrix[current_node] = row
 
             min_from, min_to = self.select_min_edge(adjacency_matrix, visited)
+            count += 1
             if min_from == -1 or min_to == -1:
                 continue
-            count += 1
             new_graph.add_edge(min_from, min_to)
             current_node = min_to
             visited.append(current_node)
@@ -77,6 +77,7 @@ class MST:
                     prev_min = matrix[row][column]
                     min_from = row
                     min_to = column
+
         return min_from, min_to
 
 

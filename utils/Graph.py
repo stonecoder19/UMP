@@ -158,7 +158,7 @@ class Graph:
         return self.node_list.keys()
 
     def has_node(self,node_id):
-        return self.node_list.has(node_id)
+        return node_id in self.node_list
 
     def print_graph(self):
         """
@@ -169,6 +169,6 @@ class Graph:
         """
         for node_id in self.get_nodes():
             node = self.get_node(node_id)
-            print node_id + ":  "
+            print node_id +":  "
             for i in node.get_neighbors():
                 print i +":" + str(node.get_cost(i))  +","

@@ -5,6 +5,7 @@ from utils.util import *
 from utils.gfx import *
 import math
 import sys
+import copy
 
 def set_up_pygame():
 	"""
@@ -32,6 +33,8 @@ def logic(graph, visited, poly_list, counter, way_lst):
 		visited += [graph.get_node(current_node).get_pos()]
 		if (len(graph.get_visited_neighbours(current_node))==len(graph.get_node(current_node).get_neighbors())):
 			points_list=[]
+			last_node = current_node
+			old_graph = copy.deepcopy(graph)
 			for node_id in graph.get_nodes():
 				if(graph.get_node(node_id).visited):
 					graph.remove_node(node_id)
@@ -39,6 +42,24 @@ def logic(graph, visited, poly_list, counter, way_lst):
 					points_list.append(graph.get_node(node_id).get_pos())
 			points_list.append(way_lst[counter-1])
 			graph = create_graph_from_map(poly_list,points_list)
+			if(graph.find_node_from_position(way_lst[counter-1]) == None):
+					print("Edge case...")
+					closest_node = get_closest_node(graph,way_lst[counter-1])
+					closest_pos = graph.get_node(closest_node).get_pos()
+					path = compute_path(old_graph,last_node,old_graph.find_node_from_position(closest_pos))
+					count = 0
+					for p in path:
+						is_intersect = False
+						for poly in poly_list:
+							pos = old_graph.get_node(p).get_pos()
+							is_intersect = check_if_edge_interects_poly(poly,Point(pos[0],pos[1]),Point(closest_pos[0],closest_pos[1]))
+						if count > 0:
+							points_list.append(old_graph.get_node(p).get_pos())
+						count+=1
+						if is_intersect==False:
+							break
+					graph = create_graph_from_map(poly_list,points_list)
+			
 			mst = MST(graph)
 			graph = mst.compute_mst()
 			graph.set_node_visited(graph.find_node_from_position(way_lst[counter-1]))
@@ -58,22 +79,22 @@ def navigate(graph, drone_coordinates, poly_list, counter, way_lst):
 	drone(gameDisplay, droneSprite, drone_x,drone_y)
 	draw_polys(poly_list, gameDisplay)
 
-	print("Number of Nodes: "+ str(num_nodes))
-	print "Counter: {}".format(counter)
+	#print("Number of Nodes: "+ str(num_nodes))
+	#print "Counter: {}".format(counter)
 	if counter<len(way_lst)-1:
 		if is_pos_equal((drone_x,drone_y),way_lst[counter]):
-			print "Im here: ({}, {})".format(drone_x,drone_y)
+			#print "Im here: ({}, {})".format(drone_x,drone_y)
 			counter+=1
-			print "Counter: {}".format(counter)
+			#print "Counter: {}".format(counter)
 			
 			current_node = graph.find_node_from_position(way_lst[counter-1])
 			graph.set_node_visited(current_node)
 			if (len(graph.get_visited_neighbours(current_node))==len(graph.get_node(current_node).get_neighbors())):
 				points_list=[]
-				last_node = graph.find_node_from_position(way_lst[counter-1])
-				old_graph = graph
+				last_node = current_node
+				old_graph = copy.deepcopy(graph)
 				for node_id in graph.get_nodes():
-					if(graph.get_node(node_id).visited and not graph.get_node(node_id)==last_node):
+					if(graph.get_node(node_id).visited):
 						graph.remove_node(node_id)
 					else:
 						points_list.append(graph.get_node(node_id).get_pos())
@@ -81,13 +102,24 @@ def navigate(graph, drone_coordinates, poly_list, counter, way_lst):
 				poly_list,points = init_map(800,600,30)
 				graph = create_graph_from_map(poly_list,points_list)
 				
-				if(not graph.has_node(last_node)):
-					win_node = get_closest_node(graph,last_node)
-					path = compute_path(old_graph,last_node,win_node):
+				if(graph.find_node_from_position(way_lst[counter-1]) == None):
+					print("Edge case...")
+					closest_node = get_closest_node(graph,way_lst[counter-1])
+					closest_pos = graph.get_node(closest_node).get_pos()
+					path = compute_path(old_graph,last_node,old_graph.find_node_from_position(closest_pos))
+					count = 0
 					for p in path:
-						win_node = None
+						is_intersect = False
 						for poly in poly_list:
-							check_if_edge_interects_poly(poly,Point(points_list[j][0],points_list[j][1]),Point(points_list[k][0],points_list[k][1])))
+							pos = old_graph.get_node(p).get_pos()
+							is_intersect = check_if_edge_interects_poly(poly,Point(pos[0],pos[1]),Point(closest_pos[0],closest_pos[1]))
+						if count > 0:
+							points_list.append(old_graph.get_node(p).get_pos())
+						count+=1
+						if is_intersect==False:
+							break
+					graph = create_graph_from_map(poly_list,points_list)
+					#graph.print_graph()
 
 
 				
@@ -99,7 +131,7 @@ def navigate(graph, drone_coordinates, poly_list, counter, way_lst):
 
 	destX = way_lst[counter][0]
 	destY = way_lst[counter][1]
-	print(destX,destY)
+	#print(destX,destY)
 
 	move_x,move_y = move_to(drone_x,drone_y,destX,destY,0.05)
 	drone_x,drone_y = update_pos(drone_x,drone_y,move_x,move_y)
@@ -112,7 +144,7 @@ def navigate(graph, drone_coordinates, poly_list, counter, way_lst):
 
 if __name__ == '__main__':
 
-	# gameDisplay, clock, screenColor, droneSprite = set_up_pygame()
+	#gameDisplay, clock, screenColor, droneSprite = set_up_pygame()
 
 	crashed = False
 
@@ -143,20 +175,20 @@ if __name__ == '__main__':
 	counter = 1
 
 	visited = []
-
+	print("Computing..")
 	while not crashed:
-
-		# graph, drone_coordinates, poly_list, counter, way_lst = navigate(graph, drone_coordinates, poly_list, counter, way_lst)
+		#graph, drone_coordinates, poly_list, counter, way_lst = navigate(graph, drone_coordinates, poly_list, counter, way_lst)
 		graph, visited, poly_list, counter, way_lst = logic(graph, visited, poly_list, counter, way_lst)
-
+		#print(visited)
 		if not counter<len(way_lst)-1:
 			crashed = True
-			print visited
+	print visited
+	print len(visited)
 
-		# if(pygame.QUIT in [event.type for event in pygame.event.get()]):
-				# 	print "You quit"
-				# 	crashed = True
-				# 	print "Visited {} nodes".format(len(visited))	
+		#if(pygame.QUIT in [event.type for event in pygame.event.get()]):
+		#		 	print "You quit"
+		#		 	crashed = True
+		#		 	print "Visited {} nodes".format(len(visited))	
 
 	quit()
 
