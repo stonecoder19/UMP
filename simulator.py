@@ -35,18 +35,22 @@ def logic(graph, visited, poly_list, counter, way_lst):
 			points_list=[]
 			last_node = current_node
 			old_graph = copy.deepcopy(graph)
+			removed = []
 			for node_id in graph.get_nodes():
 				if(graph.get_node(node_id).visited):
 					graph.remove_node(node_id)
+					removed.append(node_id)
 				else:
 					points_list.append(graph.get_node(node_id).get_pos())
 			points_list.append(way_lst[counter-1])
 			graph = create_graph_from_map(poly_list,points_list)
 			if(graph.find_node_from_position(way_lst[counter-1]) == None):
 					print("Edge case...")
-					closest_node = get_closest_node(graph,way_lst[counter-1])
-					closest_pos = graph.get_node(closest_node).get_pos()
-					path = compute_path(old_graph,last_node,old_graph.find_node_from_position(closest_pos))
+					#closest_node = get_closest_node(graph,way_lst[counter-1])
+					#closest_pos = graph.get_node(closest_node).get_pos()
+					#path = compute_path(old_graph,last_node,old_graph.find_node_from_position(closest_pos))
+					path,closest_node = shortest_path_cost_unvisited(old_graph,way_lst[counter-1],removed)
+					closest_pos = old_graph.get_node(closest_node).get_pos()
 					count = 0
 					for p in path:
 						is_intersect = False
@@ -93,14 +97,17 @@ def navigate(graph, drone_coordinates, poly_list, counter, way_lst):
 			counter+=1
 			current_node = graph.find_node_from_position(way_lst[counter-1])
 			graph.set_node_visited(current_node)
+			print(way_lst[counter-1])
 	
 			if (len(graph.get_visited_neighbours(current_node))==len(graph.get_node(current_node).get_neighbors())):
 				points_list=[]
 				last_node = current_node
 				old_graph = copy.deepcopy(graph)
+				removed=[]
 				for node_id in graph.get_nodes():
 					if(graph.get_node(node_id).visited):
 						graph.remove_node(node_id)
+						removed.append(node_id)
 					else:
 						points_list.append(graph.get_node(node_id).get_pos())
 				points_list.append(way_lst[counter-1])
@@ -110,10 +117,14 @@ def navigate(graph, drone_coordinates, poly_list, counter, way_lst):
 				
 				if(graph.find_node_from_position(way_lst[counter-1]) == None):
 					print("Edge case...")
-					closest_node = get_closest_node(graph,way_lst[counter-1])
-					print("Closest Node " + str(closest_node))
-					closest_pos = graph.get_node(closest_node).get_pos()
-					path = compute_path(old_graph,last_node,old_graph.find_node_from_position(closest_pos))
+					#closest_node = get_closest_node(graph,way_lst[counter-1])
+					#print("Closest Node " + str(closest_node))
+
+					#closest_pos = graph.get_node(closest_node).get_pos()
+					#print("Closest Position " + str(closest_pos))
+					#path = compute_path(old_graph,last_node,old_graph.find_node_from_position(closest_pos))
+					path,closest_node = shortest_path_cost_unvisited(old_graph,way_lst[counter-1],removed)
+					closest_pos = old_graph.get_node(closest_node).get_pos()
 					count = 0
 					for p in path:
 						is_intersect = False
