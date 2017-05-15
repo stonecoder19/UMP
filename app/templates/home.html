@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Polygon with Hole</title>
+
+    <link rel="stylesheet" href="../static/css/bootstrap.min.css" type="text/css" />
+    <link rel="stylesheet" href="../static/css/map.css" type="text/css" />
+  </head>
+  <body>
+    <div id="floating-panel">
+      <input  id="unnavigable" type=button value="Unavigable">
+      <input class="active" id="navigable" type=button value="Navigable">
+    </div>
+
+    <div id="modal1" class="modal"  role="dialog" aria-labelledby="mySmallModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <p>Start by choosing the outer bounds of your search space.</p>
+          <small> Select <strong>"Next" once you are finish.</strong> </small><hr/>
+          <button type="button" class="accept btn btn-success"> OK </button>
+        </div>
+      </div>
+    </div>
+    
+    <div id="modal2" class="modal"  role="dialog" aria-labelledby="mySmallModalLabel" style="display: none">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <p><strong>Now choose your unnavigable areas.</strong></p>
+          <small> If you have more than one, <strong>click "Add" after you select the first one to add another.</strong></small><hr/>
+          <button  type="button" class="accept btn btn-success"> OK </button>
+        </div>
+      </div>
+    </div>
+    
+    <button id="outerSelected" type="button" class="navigator btn btn-success"> Next </button>
+    <div class="navigator" style="display: none">
+      <button id="add" type="button" class="btn btn-primary"><span class="glyphicon glyphicon-plus"></span> | Add </button>
+      <button id="done" type="button" class="btn btn-success"><span class="glyphicon glyphicon-thumbs-up"></span> | Done </button>
+    </div>
+    
+    
+    
+    <div id="map"></div>
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+  <script type="text/javascript" src="../static/js/map.js"></script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?libraries=geometry&key=AIzaSyAvIdc2wpcR7TOdxlGcyFPBKgwoCKpACOM&callback=initMap">
+    </script>
+  </body>
+</html>

@@ -2,7 +2,12 @@ import sys, math
 from Polygon import Polygon
 from Point import Point
 from Graph import Graph
+from MST import *
 import time
+import math
+import sys
+import copy
+
 
 def init_waypoint_list(graph):
 	lst = []
@@ -386,14 +391,11 @@ def create_graph_from_map(poly_list,points_list):
 	for i in range(0,len(points_list)):
 		graph.add_node(str(i),points_list[i])
 
-	# print("Number of Points "+ str(len(points_list)))
 	tot_count = len(points_list) * len(points_list)
 	count = 0
-	time_before = time.time()
 	for j in range(0,len(points_list)):
 		for k in range (0, len(points_list)):
 			count+=1
-			#print(str(count) +"/"+ str(tot_count))
 			if(k>j):
 				if(j!=k):
 					isIntersect = False
@@ -408,10 +410,91 @@ def create_graph_from_map(poly_list,points_list):
 		node = graph.get_node(node_id)
 		if(len(node.get_neighbors())<=0):
 			graph.remove_node(node_id)
-	time_now = time.time()
-	print("Time taken " + str(time_now-time_before))
+	
 
 	return graph
+
+def get_final_path():
+	# print("Finding Points..")
+	poly_list = init_polys()
+	points = init_map(800,600,30,poly_list)
+
+	# print("Creating graph")
+	graph = create_graph_from_map(poly_list,points)
+	mst = MST(graph)
+
+	# print("Calculating mst")
+	graph = mst.compute_mst()
+
+	# print("Calculating waypoint list")
+	way_lst = init_mst_way_list(graph,(-1,-1))
+	graph.set_node_visited(graph.find_node_from_position(way_lst[0]))
+	num_nodes = len(graph.get_nodes())
+
+	counter = 1
+	visited = []
+	print("Computing..")
+	visited = calc_path(graph,poly_list,counter,way_lst)
+	return visited
+
+
+def calc_path(graph,poly_list, counter, way_lst):
+	visited=[]
+	while (counter<len(way_lst)-1):
+		counter+=1
+		
+		current_node = graph.find_node_from_position(way_lst[counter-1])
+		graph.set_node_visited(current_node)
+		visited += [graph.get_node(current_node).get_pos()]
+		if (len(graph.get_visited_neighbours(current_node))==len(graph.get_node(current_node).get_neighbors())):
+			points_list=[]
+			last_node = current_node
+			old_graph = copy.deepcopy(graph)
+			removed = []
+			for node_id in graph.get_nodes():
+				if(graph.get_node(node_id).visited):
+					graph.remove_node(node_id)
+					removed.append(node_id)
+				else:
+					points_list.append(graph.get_node(node_id).get_pos())
+			points_list.append(way_lst[counter-1])
+			graph = create_graph_from_map(poly_list,points_list)
+			if(graph.find_node_from_position(way_lst[counter-1]) == None):
+					#closest_node = get_closest_node(graph,way_lst[counter-1])
+					#closest_pos = graph.get_node(closest_node).get_pos()
+					#path = compute_path(old_graph,last_node,old_graph.find_node_from_position(closest_pos))
+					path,closest_node = shortest_path_cost_unvisited(old_graph,way_lst[counter-1],removed)
+					closest_pos = old_graph.get_node(closest_node).get_pos()
+					count = 0
+					for p in path:
+						is_intersect = False
+						for poly in poly_list:
+							pos = old_graph.get_node(p).get_pos()
+							is_intersect = check_if_edge_interects_poly(poly,Point(pos[0],pos[1]),Point(closest_pos[0],closest_pos[1]))
+							if is_intersect == True:
+								break
+						
+						if count > 0:
+							position = old_graph.get_node(p).get_pos()
+							if position not in points_list:
+								points_list.append(position)
+							
+						
+						if is_intersect==False:
+							break
+						
+						count+=1
+					graph = create_graph_from_map(poly_list,points_list)
+
+			
+			mst = MST(graph)
+			graph = mst.compute_mst()
+			graph.set_node_visited(graph.find_node_from_position(way_lst[counter-1]))
+			way_lst = init_mst_way_list(graph,way_lst[counter-1])
+			counter = 1
+	final_node = graph.find_node_from_position(way_lst[counter])
+	visited+=[graph.get_node(final_node).get_pos()]
+	return visited
 
 def init_poly_list(poly_sides,num_poly):
 	# poly_list = []

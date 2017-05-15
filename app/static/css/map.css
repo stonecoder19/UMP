@@ -1,0 +1,70 @@
+/* Always set the map height explicitly to define the size of the div
+* element that contains the map. */
+#map {
+height: 100%;
+}
+/* Optional: Makes the sample page fill the window. */
+html, body {
+height: 100%;
+margin: 0;
+padding: 0;
+}
+
+#floating-panel {
+position: absolute;
+top: 10px;
+left: 25%;
+z-index: 5;
+background-color: #fff;
+padding: 5px;
+border: 1px solid #999;
+text-align: center;
+font-family: 'Roboto','sans-serif';
+line-height: 30px;
+padding-left: 10px;
+opacity: 0.4;
+}
+
+#floating-panel .active{
+background-color: green;
+}
+
+.modal {
+    position: absolute; 
+    z-index: 10;
+    padding-top: 100px;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%; 
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4); 
+    border-radius:10px;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    border: 1px solid #888;
+    width: 80%;
+    vertical-align: top;
+    color: black;
+    margin: auto;
+    padding: 2% 4% 4% 4%;
+}
+
+#map{
+    z-index:1;
+}
+
+.navigator{
+    z-index: 5;
+    position:absolute;
+    bottom:0;
+    right: 0;
+    margin-right: 50px;
+    margin-bottom: 50px;
+}
+
+small {
+    font-size: 1.5em;
+}

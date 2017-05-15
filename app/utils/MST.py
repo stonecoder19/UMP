@@ -1,6 +1,6 @@
 import math
 import sys
-from utils.Graph import Graph
+from Graph import Graph
 
 class MST:
     
