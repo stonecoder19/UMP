@@ -23,6 +23,93 @@ def set_up_pygame():
 
 	return gameDisplay, clock, screenColor, droneSprite
 
+
+
+def get_final_path():
+	# print("Finding Points..")
+	poly_list = init_polys()
+	points = init_map(800,600,30,poly_list)
+
+	# print("Creating graph")
+	graph = create_graph_from_map(poly_list,points)
+	mst = MST(graph)
+
+	# print("Calculating mst")
+	graph = mst.compute_mst()
+
+	# print("Calculating waypoint list")
+	way_lst = init_mst_way_list(graph,(-1,-1))
+	graph.set_node_visited(graph.find_node_from_position(way_lst[0]))
+	num_nodes = len(graph.get_nodes())
+
+	counter = 1
+	visited = []
+	print("Computing..")
+	visited = calc_path(graph,poly_list,counter,way_lst)
+	print visited
+
+
+def calc_path(graph,poly_list, counter, way_lst):
+	visited=[]
+	while (counter<len(way_lst)-1):
+		counter+=1
+		
+		current_node = graph.find_node_from_position(way_lst[counter-1])
+		graph.set_node_visited(current_node)
+		visited += [graph.get_node(current_node).get_pos()]
+		if (len(graph.get_visited_neighbours(current_node))==len(graph.get_node(current_node).get_neighbors())):
+			points_list=[]
+			last_node = current_node
+			old_graph = copy.deepcopy(graph)
+			removed = []
+			for node_id in graph.get_nodes():
+				if(graph.get_node(node_id).visited):
+					graph.remove_node(node_id)
+					removed.append(node_id)
+				else:
+					points_list.append(graph.get_node(node_id).get_pos())
+			points_list.append(way_lst[counter-1])
+			graph = create_graph_from_map(poly_list,points_list)
+			if(graph.find_node_from_position(way_lst[counter-1]) == None):
+					print("Edge case...")
+					#closest_node = get_closest_node(graph,way_lst[counter-1])
+					#closest_pos = graph.get_node(closest_node).get_pos()
+					#path = compute_path(old_graph,last_node,old_graph.find_node_from_position(closest_pos))
+					path,closest_node = shortest_path_cost_unvisited(old_graph,way_lst[counter-1],removed)
+					closest_pos = old_graph.get_node(closest_node).get_pos()
+					count = 0
+					for p in path:
+						is_intersect = False
+						for poly in poly_list:
+							pos = old_graph.get_node(p).get_pos()
+							is_intersect = check_if_edge_interects_poly(poly,Point(pos[0],pos[1]),Point(closest_pos[0],closest_pos[1]))
+							if is_intersect == True:
+								break
+						
+						if count > 0:
+							position = old_graph.get_node(p).get_pos()
+							if position not in points_list:
+								points_list.append(position)
+							
+						
+						if is_intersect==False:
+							break
+						
+						count+=1
+					graph = create_graph_from_map(poly_list,points_list)
+
+			
+			mst = MST(graph)
+			graph = mst.compute_mst()
+			graph.set_node_visited(graph.find_node_from_position(way_lst[counter-1]))
+			way_lst = init_mst_way_list(graph,way_lst[counter-1])
+			counter = 1
+	final_node = graph.find_node_from_position(way_lst[counter])
+	visited+=[graph.get_node(final_node).get_pos()]
+	return visited
+
+
+
 def logic(graph, visited, poly_list, counter, way_lst):
 	drone_x,drone_y = drone_coordinates
 	if counter<len(way_lst)-1:
@@ -111,9 +198,7 @@ def navigate(graph, drone_coordinates, poly_list, counter, way_lst):
 					else:
 						points_list.append(graph.get_node(node_id).get_pos())
 				points_list.append(way_lst[counter-1])
-				poly_list,points = init_map(800,600,30)
 				graph = create_graph_from_map(poly_list,points_list)
-				
 				
 				if(graph.find_node_from_position(way_lst[counter-1]) == None):
 					print("Edge case...")
@@ -170,12 +255,13 @@ def navigate(graph, drone_coordinates, poly_list, counter, way_lst):
 
 if __name__ == '__main__':
 
-	gameDisplay, clock, screenColor, droneSprite = set_up_pygame()
+	#gameDisplay, clock, screenColor, droneSprite = set_up_pygame()
 
-	crashed = False
+	'''crashed = False
 
 	# print("Finding Points..")
-	poly_list,points = init_map(800,600,30)
+	poly_list = init_polys()
+	points = init_map(800,600,30,poly_list)
 
 	# print("Creating graph")
 	graph = create_graph_from_map(poly_list,points)
@@ -216,7 +302,8 @@ if __name__ == '__main__':
 			crashed = True
 			print "Visited {} nodes".format(len(visited))	
 
-	quit()
+	quit()'''
+	get_final_path()
 
 
 

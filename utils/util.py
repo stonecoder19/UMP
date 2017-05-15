@@ -335,66 +335,8 @@ def init_polys():
 
 	return poly_list
 
-def init_map(width,height,drone_radius):
+def init_map(width,height,drone_radius,poly_list):
 	points_list = init_radius_points(width,height,drone_radius)
-	poly_list=[]
-	
-	polygon1 = Polygon("red")
-	polygon1.add_vert(Point(40,50))
-	polygon1.add_vert(Point(150,50))
-	polygon1.add_vert(Point(20,150))
-	polygon1.add_vert(Point(40,5))
-
-	polygon2 = Polygon("green")
-	polygon2.add_vert(Point(200,250))
-	polygon2.add_vert(Point(220,270))
-	polygon2.add_vert(Point(260,290))
-	polygon2.add_vert(Point(190,200))
-
-	polygon3 = Polygon("green")
-	polygon3.add_vert(Point(550,250))
-	polygon3.add_vert(Point(570,270))
-	polygon3.add_vert(Point(610,290))
-	polygon3.add_vert(Point(540,200))
-
-	polygon4 = Polygon("green")
-	polygon4.add_vert(Point(450,400))
-	polygon4.add_vert(Point(450,500))
-	polygon4.add_vert(Point(550,500))
-	polygon4.add_vert(Point(550,400))
-
-	polygon5 = Polygon("green")
-	polygon5.add_vert(Point(250,400))
-	polygon5.add_vert(Point(250,500))
-	polygon5.add_vert(Point(350,500))
-	polygon5.add_vert(Point(350,400))
-
-	polygon6 = Polygon("green")
-	polygon6.add_vert(Point(350,500))
-	polygon6.add_vert(Point(350,600))
-	polygon6.add_vert(Point(450,600))
-	polygon6.add_vert(Point(450,500))
-
-
-	polygon7 = Polygon("green")
-	polygon7.add_vert(Point(350,100))
-	polygon7.add_vert(Point(350,200))
-	polygon7.add_vert(Point(450,200))
-	polygon7.add_vert(Point(450,100))
-	'''polygon3 = Polygon("blue")
-	polygon1.add_vert(Point(40,50))
-	polygon1.add_vert(Point(40,50))
-	polygon1.add_vert(Point(40,50))
-	polygon1.add_vert(Point(40,50))'''
-
-	poly_list.append(polygon1)
-	poly_list.append(polygon2)
-	poly_list.append(polygon3)
-	poly_list.append(polygon4)
-	poly_list.append(polygon5)
-	poly_list.append(polygon6)
-	poly_list.append(polygon7)
-
 	new_points_list=[]
 	for p in points_list:
 		inBounds = False
@@ -406,7 +348,7 @@ def init_map(width,height,drone_radius):
 		if(inBounds==False):
 			new_points_list.append(p)
 
-	return poly_list,new_points_list
+	return new_points_list
 
 
 def check_if_edge_interects_poly_rect(polygon,point1,point2):
