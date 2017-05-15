@@ -104,6 +104,7 @@ def get_closest_unvisited_neighbour(graph,visited,node):
 			elif(graph.get_node(node).get_cost(node_id)==prev_min):
 				alt_lst.append(node_id)
 	if(len(alt_lst)>0):
+		alt_lst.append(min_node)
 		prev_min=sys.maxint
 		min_el=None
 		for el in alt_lst:
@@ -277,6 +278,19 @@ def init_map(width,height,drone_radius):
 	polygon5.add_vert(Point(250,500))
 	polygon5.add_vert(Point(350,500))
 	polygon5.add_vert(Point(350,400))
+
+	polygon6 = Polygon("green")
+	polygon6.add_vert(Point(350,500))
+	polygon6.add_vert(Point(350,600))
+	polygon6.add_vert(Point(450,600))
+	polygon6.add_vert(Point(450,500))
+
+
+	polygon7 = Polygon("green")
+	polygon7.add_vert(Point(350,100))
+	polygon7.add_vert(Point(350,200))
+	polygon7.add_vert(Point(450,200))
+	polygon7.add_vert(Point(450,100))
 	'''polygon3 = Polygon("blue")
 	polygon1.add_vert(Point(40,50))
 	polygon1.add_vert(Point(40,50))
@@ -288,6 +302,8 @@ def init_map(width,height,drone_radius):
 	poly_list.append(polygon3)
 	poly_list.append(polygon4)
 	poly_list.append(polygon5)
+	poly_list.append(polygon6)
+	poly_list.append(polygon7)
 
 	new_points_list=[]
 	for p in points_list:
