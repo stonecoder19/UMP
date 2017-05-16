@@ -30,7 +30,14 @@ def coordinates():
     if request.json['inner2']:
 	    innerbounds2 = request.json['inner2']
 	    print innerbounds2
-    print get_final_path()
+    path = get_final_path(outerbounds,innerbounds1,innerbounds2,30)
+    print(path)
+    
+
+
+
+
+    #print get_final_path()
     return "Success"
 
 

@@ -2,6 +2,7 @@ import sys, math
 from Polygon import Polygon
 from Point import Point
 from Graph import Graph
+from Rect import Rect
 from MST import *
 import time
 import math
@@ -355,6 +356,21 @@ def init_map(width,height,drone_radius,poly_list):
 
 	return new_points_list
 
+def init_map_with_border(width,height,drone_radius,poly_list,border):
+	points_list = init_radius_points(width,height,drone_radius)
+	new_points_list=[]
+	for p in points_list:
+		if(is_in_poly(border,Point(p[0],p[1]))):
+			inBounds = False
+			for poly in poly_list:
+				#rect = create_rect_from_poly(poly)
+				if (is_in_poly(poly,Point(p[0],p[1]))):
+					inBounds=True
+					break
+			if(inBounds==False):
+				new_points_list.append(p)
+
+	return new_points_list
 
 def check_if_edge_interects_poly_rect(polygon,point1,point2):
 	rect = create_rect_from_poly(polygon)
@@ -414,10 +430,133 @@ def create_graph_from_map(poly_list,points_list):
 
 	return graph
 
-def get_final_path():
+
+def create_poly_from_coords(coords):
+	polygon = Polygon("poly")
+	for coord in coords:
+		polygon.add_vert(Point(coord[0],coord[1]))
+	return polygon
+
+
+def geo_to_int(geo_coord):
+	s = '%.10f' % geo_coord
+	s_split = s.split('.')
+	new_s = s_split[0]+s_split[1]
+	return int(new_s)
+
+def int_to_geo(coord):
+	coord_s = str(int(coord))
+	coord_f = float(str(coord_s[:-10])+'.'+str(coord_s[-10:]))
+	return coord_f
+
+
+def convert_180_to_360(geo_coord):
+	lat = geo_to_int(geo_coord[0])
+	lng = geo_to_int(geo_coord[1])
+	x = 1800000000000+lng
+	y = 1800000000000-lat
+	return (x,y) 
+
+def convert_coord_to_geo(euc_coord):
+	x = euc_coord[0]
+	y = euc_coord[1]
+	lng_i = x - 1800000000000
+	lat_i = 1800000000000 - y
+	return (int_to_geo(lat_i),int_to_geo(lng_i))
+
+
+def convert_json_to_polys(outerbounds,innerbounds1,innerbounds2):
+    outer_coord_list = []
+    for coord in outerbounds:
+    	lat = coord['lat']
+    	lon = coord['lng']
+    	outer_coord_list.append(convert_180_to_360((lat,lon)))
+	
+	incoord1_list = []
+	
+	for incoord1 in innerbounds1:
+		lat1 = incoord1['lat']
+		lon1 = incoord1['lng']
+		incoord1_list.append(convert_180_to_360((lat1,lon1)))
+
+	incoord2_list=[]
+	for incoord2 in innerbounds2:
+		lat2 = incoord2['lat']
+		lon2 = incoord2['lng']
+		incoord2_list.append(convert_180_to_360((lat2,lon2)))
+	inner_poly_coords = []
+	inner_poly_coords.append(incoord1_list)
+	inner_poly_coords.append(incoord2_list)
+    
+    return outer_coord_list,inner_poly_coords
+
+
+def convert_coords_geo_to_euclidean(outer_coord_list,inner_poly_coords):
+	outer_poly = create_poly_from_coords(outer_coord_list)
+	poly_rect = create_rect_from_poly(outer_poly)
+	max_width = 0
+	if(poly_rect.width>poly_rect.height):
+		max_width = 800
+		max_height = int((float(poly_rect.height)/float(poly_rect.width)) * 800)
+	else:
+		max_height = 800
+		max_width = int((float(poly_rect.width)/float(poly_rect.height))* 800)
+
+	new_outer_coord_list = []
+	for coord in outer_coord_list:
+		x = int((float(math.fabs(poly_rect.top_left.x - coord[0])) / float(poly_rect.width)) * max_width)
+		y = int((float(math.fabs(poly_rect.top_left.y - coord[1])) / float(poly_rect.height)) * max_height)
+		new_outer_coord_list.append((x,y))
+	
+	euc_poly = create_poly_from_coords(new_outer_coord_list)
+	euc_rect = create_rect_from_poly(euc_poly)
+
+	new_inner_polys=[]
+	for inner_coord_lst in inner_poly_coords:
+		inner_poly = create_poly_from_coords(inner_coord_lst)
+		#poly_rect = create_rect_from_poly(inner_poly)
+		new_inner_poly_coord_lst = []
+		for coord in inner_coord_lst:
+			x = int((float(math.fabs(poly_rect.top_left.x - coord[0])) / float(poly_rect.width)) * max_width)
+			y = int((float(math.fabs(poly_rect.top_left.y - coord[1])) / float(poly_rect.height)) * max_height)
+			new_inner_poly_coord_lst.append((x,y))
+		new_inner_polys.append(new_inner_poly_coord_lst)
+	return new_outer_coord_list,new_inner_polys,poly_rect,euc_rect
+
+
+
+def convert_euclidean_path_to_geo(path,euc_rect,geo_rect):
+	
+	screen_width = euc_rect.width
+	screen_height = euc_rect.height
+	geo_path = []
+	for waypoint in path:
+		x = waypoint[0]
+		y = waypoint[1]
+		x_geo = ((float(x)/float(screen_width)) * geo_rect.width) + geo_rect.top_left.x
+		y_geo = ((float(y)/float(screen_height))* geo_rect.height) + geo_rect.top_left.y
+		geo_path.append(convert_coord_to_geo((x_geo,y_geo)))
+	return geo_path
+
+
+
+
+
+	
+def get_final_path(outerbounds,innerbounds1,innerbounds2,radius):
 	# print("Finding Points..")
-	poly_list = init_polys()
-	points = init_map(800,600,30,poly_list)
+	#poly_list = init_polys()
+	#points = init_map(800,600,30,poly_list)
+	outer_coord_list,inner_poly_coords = convert_json_to_polys(outerbounds,innerbounds1,innerbounds2)
+	new_outer_coord_list, new_inner_polys,geo_rect,border_rect = convert_coords_geo_to_euclidean(outer_coord_list,inner_poly_coords)
+	border_poly = create_poly_from_coords(new_outer_coord_list)
+	poly_list = []
+	for poly in new_inner_polys:
+		poly_list.append(create_poly_from_coords(poly))
+
+	
+	points = init_map_with_border(int(border_rect.width),int(border_rect.height),radius,poly_list,border_poly)
+
 
 	# print("Creating graph")
 	graph = create_graph_from_map(poly_list,points)
@@ -435,7 +574,8 @@ def get_final_path():
 	visited = []
 	print("Computing..")
 	visited = calc_path(graph,poly_list,counter,way_lst)
-	return visited
+	geo_path = convert_euclidean_path_to_geo(visited,border_rect,geo_rect)
+	return geo_path
 
 
 def calc_path(graph,poly_list, counter, way_lst):

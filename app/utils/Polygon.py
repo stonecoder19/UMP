@@ -1,3 +1,5 @@
+import sys
+import math
 class Polygon:
 	def __init__(self,color):
 		self.color = color
