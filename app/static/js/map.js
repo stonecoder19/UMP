@@ -212,16 +212,23 @@
         startPos = path[0]
         var startPt = new google.maps.LatLng(startPos[0],startPos[1])
         map.setCenter(startPt)
-        map.setZoom(10)
+        map.setZoom(30)
+        var drone_icon = {
+            url: "https://d30y9cdsu7xlg0.cloudfront.net/png/156824-200.png", // url
+            scaledSize: new google.maps.Size(30, 30), // scaled size
+            origin: new google.maps.Point(0,0), // origin
+            anchor: new google.maps.Point(0, 0) // anchor
+        };
         drone_marker = new google.maps.Marker({
            position: new google.maps.LatLng(startPos[0], startPos[1]),
+           icon: drone_icon,
            map: map
         });
 
-        animateMarker(drone_marker,path, speed,delay);
+        animateMarker(map,drone_marker,path, speed,delay);
     }
 
-    function animateMarker(marker, coords, km_h,delay)
+    function animateMarker(map,marker, coords, km_h,delay)
     {
         var target = 0;
         var km_h = km_h || 200;
@@ -258,12 +265,36 @@
                     setTimeout(moveMarker, delay);
                 }
                 else
-                {   
+                {
+                    
+
+                     
                     marker.setPosition(dest);
                     target++;
-                    if (target == coords.length){ target = 0; }
+                    //if (target == coords.length){ target = 0; }
 
-                    setTimeout(goToPoint, delay);
+                    var flightPlanCoordinates=[]
+                    var point1 = new google.maps.LatLng(lat,lng);
+                    var point2  = new google.maps.LatLng(coords[target][0], coords[target][1]);
+                    flightPlanCoordinates.push(point1);
+                    flightPlanCoordinates.push(point2);     
+
+
+                    var flightPath = new google.maps.Polyline({
+                        path: flightPlanCoordinates,
+                        geodesic: true,
+                        strokeColor: '#FF0000',
+                        strokeOpacity: 3.0,
+                        strokeWeight: 4
+                    });
+                    flightPath.setMap(map);  
+                    if(target< coords.length){
+                        setTimeout(goToPoint, delay);
+                    }else{
+                        alert("All Done");
+                    }
+                
+
                 }
             }
             moveMarker();
