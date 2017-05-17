@@ -183,7 +183,7 @@
                   type: 'POST',
                   url: '/api/processing',
                   data: JSON.stringify ({outer: outerCoords, inner: innerCoords, inner2: innerCoords2}),
-                  success: function(data) { alert('data: ' + data.data); },
+                  success: function(data) { initAnimation(data) },
                   contentType: "application/json",
                   dataType: 'json'
               });
@@ -198,11 +198,80 @@
                   type: 'POST',
                   url: '/api/processing',
                   data: JSON.stringify ({outer: outerCoords, inner: innerCoords}),
-                  success: function(data) { alert('data: ' + data.data); },
+                  success: function(data) { alert(); },
                   contentType: "application/json",
                   dataType: 'json'
               });
           }
       });
+
+    function initAnimation(path){
+        var speed = 200; // km/h
+
+        var delay = 100;
+        startPos = path[0]
+        var startPt = new google.maps.LatLng(startPos[0],startPos[1])
+        map.setCenter(startPt)
+        map.setZoom(10)
+        drone_marker = new google.maps.Marker({
+           position: new google.maps.LatLng(startPos[0], startPos[1]),
+           map: map
+        });
+
+        animateMarker(drone_marker,path, speed,delay);
+    }
+
+    function animateMarker(marker, coords, km_h,delay)
+    {
+        var target = 0;
+        var km_h = km_h || 200;
+        
+
+        function goToPoint()
+        {
+            var lat = marker.position.lat();
+            var lng = marker.position.lng();
+            var step = (km_h * 1000 * delay) / 3600000; // in meters
+
+            var dest = new google.maps.LatLng(
+            coords[target][0], coords[target][1]);
+
+            var distance =
+                google.maps.geometry.spherical.computeDistanceBetween(
+            dest, marker.position); // in meters
+
+            var numStep = distance / step;
+            var i = 0;
+            var deltaLat = (coords[target][0] - lat) / numStep;
+            var deltaLng = (coords[target][1] - lng) / numStep;
+
+            console.log("Lat " + lat+"" + "Lng " + lng+"");
+            function moveMarker()
+            {
+                lat += deltaLat;
+                lng += deltaLng;
+                i += step;
+
+                if (i < distance)
+                {
+                    marker.setPosition(new google.maps.LatLng(lat, lng));
+                    setTimeout(moveMarker, delay);
+                }
+                else
+                {   
+                    marker.setPosition(dest);
+                    target++;
+                    if (target == coords.length){ target = 0; }
+
+                    setTimeout(goToPoint, delay);
+                }
+            }
+            moveMarker();
+        }
+        goToPoint();
+    }
+
+
+
       
       

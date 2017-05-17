@@ -6,7 +6,7 @@ This file creates your application.
 """
 
 from app import app
-from flask import render_template, request, redirect, url_for, flash
+from flask import render_template, request, redirect, url_for, flash,jsonify
 import smtplib
 from utils.util import *
 
@@ -30,15 +30,16 @@ def coordinates():
     if request.json['inner2']:
 	    innerbounds2 = request.json['inner2']
 	    print innerbounds2
+    data = []
     path = get_final_path(outerbounds,innerbounds1,innerbounds2,30)
+    print(len(path))
     print(path)
-    
-
-
-
-
-    #print get_final_path()
-    return "Success"
+    for p in path:
+        coord={}
+        coord['lat'] = p[0]
+        coord['lng'] = p[1]
+        data.append(p)
+    return jsonify(path)
 
 
 
