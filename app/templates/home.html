@@ -7,6 +7,16 @@
 
     <link rel="stylesheet" href="../static/css/bootstrap.min.css" type="text/css" />
     <link rel="stylesheet" href="../static/css/map.css" type="text/css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+        <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+        <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+    <style>
+            dialog {
+                border: 1px solid rgba(0, 0, 0, 0.3);
+                border-radius: 6px;
+                box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+            }
+        </style>
   </head>
   <body>
     <div id="floating-panel">
@@ -33,6 +43,44 @@
         </div>
       </div>
     </div>
+
+    <dialog id="modal3" class="mdl-dialog">
+            <h4 class="mdl-dialog__title">UAV Parameters</h4>
+            <form method="dialog" >
+                <div class="mdl-dialog__content">
+                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                        <input class="mdl-textfield__input" type="text" id="radius">
+                        <label class="mdl-textfield__label" for="radius">Sensing Range (m)</label>
+                    </div>
+                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                        <input class="mdl-textfield__input" type="text" id="speed">
+                        <label class="mdl-textfield__label" for="speed">Flight Speed</label>
+                    </div>
+                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                        <input class="mdl-textfield__input" type="text" id="batt_life">
+                        <label class="mdl-textfield__label" for="batt_life">Battery Life</label>
+                    </div>
+                </div>
+                <div class="mdl-dialog__actions">
+                    <button type="submit" value="done" class="mdl-button">Done</button>
+                    <!-- <button type="submit" value="cancel" class="mdl-button">Cancel</button> -->
+                </div>
+            </form>
+        </dialog>
+
+        <dialog id="modal4" class="mdl-dialog">
+            <h4 class="mdl-dialog__title">Mission Plan Summary</h4>
+                <div id="summary_fields" class="mdl-dialog__content">
+                    <p>Total Distance:&nbsp;</p>
+                    <p>Flight Time:&nbsp;</p>
+                    <p>Average Speed:&nbsp;</p>
+                    <p># Waypoints:&nbsp;</p>
+                </div>
+                <div class="mdl-dialog__actions">
+                    <button type="button" class="mdl-button close">Close</button>
+                </div>
+
+        </dialog>
     
     <button id="outerSelected" type="button" class="navigator btn btn-success"> Next </button>
     <div class="navigator" style="display: none">

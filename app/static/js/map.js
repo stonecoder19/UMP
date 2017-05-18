@@ -209,10 +209,10 @@
     function bindFlightPlanDataToModal(tot_dist, flight_time, avg_speed, nwp) {
         var fields = document.getElementById('summary_fields').children;
 
-        fields[0].text += tot_dist;
-        fields[1].text += flight_time;
-        fields[2].text += avg_speed;
-        fields[3].text += nwp;
+        fields[0].innerHTML += tot_dist;
+        fields[1].innerHTML += flight_time;
+        fields[2].innerHTML += avg_speed;
+        fields[3].innerHTML += nwp;
     }
 
     function postSuccess(data) {
@@ -226,11 +226,15 @@
 
         bindFlightPlanDataToModal(dist, flight_time, speed, nwp);
 
-        var addBtn = document.getElementById('add');
-        addBtn.value = "View Summary";
-        addBtn.removeEventListener('click', addBtnClickFn);
+        $('#add').off('click');
+
+        $('#add').html('View Mission Plan Stats');
         summaryModal = document.getElementById('modal4');
-        addBtn.addEventListener('click', function() { summaryModal.showModal(); });
+        summaryModal.querySelector('.close').addEventListener('click', function() {
+            summaryModal.close();
+        });
+
+        $('#add').click(function() { summaryModal.showModal(); });
 
         initAnimation(data);
     }
@@ -245,7 +249,7 @@
                   type: 'POST',
                   url: '/api/processing',
                   data: JSON.stringify ({outer: outerCoords, inner: innerCoords, inner2: innerCoords2, radius: radius, speed: speed, batt_life: batt_life}),
-                  success: function(data) { initAnimation(data) },
+                  success: function(data) { postSuccess(data); },
                   contentType: "application/json",
                   dataType: 'json'
               });
