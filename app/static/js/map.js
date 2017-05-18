@@ -215,16 +215,82 @@
         fields[3].innerHTML += nwp;
     }
 
-    function postSuccess(data) {
+
+    function computeDistanceBetween(point1,point2)
+    {
+        point1 = new google.maps.LatLng(point1[0], point1[1]);
+        point2 = new google.maps.LatLng(point2[0], point2[1]);
+
+        distance = google.maps.geometry.spherical.computeDistanceBetween(point1,point2);
+
+        return distance;
+    }
+    //calculates total distance of path
+    function calcTotalDistance(path_list)
+    {
+        var tot_dist = 0;
+        for(var i=0;i<path_list.length-1;i++)
+        {
+            
+            tot_dist += computeDistanceBetween(path_list[i],path_list[i+1]);
+        }
+
+        return tot_dist;
+    }
+
+    //converts km/hr to meters/second
+    function convertSpeedToMetersPerSecond(speed)
+    {
+        return speed * 0.277778;
+    }
+
+    //finds positions of recharge spots
+    function placeRechargeSpots(path_list,batt_life,speed)
+    {
+        var tot_time = 0;
+        var tot_dist = 0;
+        var recharge_spots = [];
+        for (var i=0; i<path_list.length-1;i++)
+        {
+            tot_dist+=computeDistanceBetween(path_list[i],path_list[i+1])
+            tot_time+= (tot_dist/convertSpeedToMetersPerSecond(speed))/60
+            if(tot_time >= batt_life)
+            {
+                tot_dist=0;
+                tot_time=0;
+                recharge_spots.push(path_list[i+1])
+            }
+        }
+        var recharge_icon = {
+            url:"https://cdn3.iconfinder.com/data/icons/map/500/gasstation-512.png", // url
+            scaledSize: new google.maps.Size(30, 30), // scaled size
+            origin: new google.maps.Point(0,0), // origin
+            anchor: new google.maps.Point(0, 0) // anchor
+        };
+        for(var j=0;j<recharge_spots.length;j++)
+        {
+            marker = new google.maps.Marker({
+                position: new google.maps.LatLng(recharge_spots[j][0],recharge_spots[j][1]),
+                map: map,
+                icon: recharge_icon
+            });
+        }
+    }
+
+    function postSuccess(radius,speed,batt_life,data) {
         var doneBtn = document.getElementById('done');
         doneBtn.style.display = 'none';
 
-        var dist=100;
-        var flight_time=2;
-        var speed=100;
-        var nwp=100;
+       
+        var tot_dist = calcTotalDistance(data);
+        var flight_time = tot_dist/convertSpeedToMetersPerSecond(speed);
+        var flight_to_mins = flight_time/60; //time in minutes
+        var speed=speed;
+        var nwp=data.length;
 
-        bindFlightPlanDataToModal(dist, flight_time, speed, nwp);
+        placeRechargeSpots(data,batt_life,speed);
+
+        bindFlightPlanDataToModal(tot_dist, flight_time, speed, nwp);
 
         $('#add').off('click');
 
@@ -248,15 +314,15 @@
               $.ajax({
                   type: 'POST',
                   url: '/api/processing',
-                  data: JSON.stringify ({outer: outerCoords, inner: innerCoords, inner2: innerCoords2, radius: radius, speed: speed, batt_life: batt_life}),
-                  success: function(data) { postSuccess(data); },
+                  data: JSON.stringify ({outer: outerCoords, inner: innerCoords, inner2: innerCoords2}),
+                  success: function(data) { postSuccess(radius,speed,batt_life,data); },
                   contentType: "application/json",
                   dataType: 'json'
               });
     
                // resets polygon
                
-          } else if (innerCoords2.length == 0 && innerCoords.length > 0){
+        } else if (innerCoords2.length == 0 && innerCoords.length > 0){
             google.maps.Map.prototype.clearMarkers;
             map.data.add({geometry: new google.maps.Data.Polygon([outerCoords,innerCoords])});
               //sends request to backend
@@ -268,7 +334,7 @@
                   contentType: "application/json",
                   dataType: 'json'
               });
-          }
+        }
     }
 
     function initAnimation(path){
