@@ -1,18 +1,24 @@
 
     /* global $ */
-      var poly;
-      var map;
-      var infoWindow;
-      var outerCoords= [];
-      var innerCoords= [];
-      var innerCoords2=[];
-      var markers=[];
-      var path = [];
-      var polygon;
+    var poly;
+    var map;
+    var infoWindow;
+    var outerCoords= [];
+    var innerCoords= [];
+    var innerCoords2=[];
+    var markers=[];
+    var path = [];
+    var polygon;
       
-      var i = 0;
+    var i = 0;
+
+
+    var addBtnClickFn = function() {
+          //Initialize another innercoords list
+          i++;
+    };
       
-      $(window).on('load',function(){
+    $(window).on('load',function(){
         $('#modal1').show();
         
         // Hides the modal when the close button is clicked     
@@ -47,9 +53,10 @@
             $('.modal').hide();
             }
         });
-      });
+    });
 
-      function initMap() {
+
+    function initMap() {
         map = new google.maps.Map(document.getElementById('map'), {
           zoom: 14,
           center: {lat: 18.0078, lng: -76.8654},  // Center the map on Kingston, Jamaica.
@@ -79,11 +86,11 @@
         map.addListener('click', addLatLng);
         //poly.addListener('bounds_changed', showNewRect);
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-      };
+    };
 
       
       // Handles click events on a map, and adds a new point to the Polyline.
-      function addLatLng(event) {
+    function addLatLng(event) {
         // var path = poly.getPath();
         //console.log(path.getArray().toString());  this converts the paths to string. Useful for python config.
         
@@ -126,9 +133,9 @@
           draggable: true,
         });
         markers.push(marker);
-      }
+    }
       
-      function showNewRect(event) {
+    function showNewRect(event) {
         console.log("here");
         var ne = poly.getBounds().getNorthEast();
         var sw = poly.getBounds().getSouthWest();
@@ -142,7 +149,7 @@
         infoWindow.setPosition(ne);
 
         infoWindow.open(map);
-      }
+    }
       
       
       
@@ -152,7 +159,7 @@
       //     fillOpacity: 0.35
       //   });
         
-     $('#done').click(function() {
+    $('#done').click(function() {
           //polygon.setMap(map);
           
         //   polygon.getPaths().forEach(function(path, index){
@@ -175,14 +182,69 @@
         // google.maps.event.addListener(polygon, 'dragend', function(){
         //   // Polygon was dragged
         // });
-          if (innerCoords.length > 0 && innerCoords2.length > 0){
+
+        var dialog = document.getElementById('modal3');
+        if (! dialog.showModal) {
+            dialogPolyfill.registerDialog(dialog);
+        }
+
+        dialog.showModal();
+
+
+
+        dialog.addEventListener('close', function() {
+            if (dialog.returnValue == 'done') {
+                var radius = document.getElementById('radius').value;
+                var speed = document.getElementById('speed').value;
+                var batt_life = document.getElementById('batt_life').value;
+
+                if(radius && speed && batt_life) {
+                    makeAPICall(radius, speed, batt_life);
+                }
+            }
+        });
+          
+    });
+
+    function bindFlightPlanDataToModal(tot_dist, flight_time, avg_speed, nwp) {
+        var fields = document.getElementById('summary_fields').children;
+
+        fields[0].text += tot_dist;
+        fields[1].text += flight_time;
+        fields[2].text += avg_speed;
+        fields[3].text += nwp;
+    }
+
+    function postSuccess(data) {
+        var doneBtn = document.getElementById('done');
+        doneBtn.style.display = 'none';
+
+        var dist=100;
+        var flight_time=2;
+        var speed=100;
+        var nwp=100;
+
+        bindFlightPlanDataToModal(dist, flight_time, speed, nwp);
+
+        var addBtn = document.getElementById('add');
+        addBtn.value = "View Summary";
+        addBtn.removeEventListener('click', addBtnClickFn);
+        summaryModal = document.getElementById('modal4');
+        addBtn.addEventListener('click', function() { summaryModal.showModal(); });
+
+        initAnimation(data);
+    }
+
+    function makeAPICall(radius,speed,batt_life)
+    {
+        if (innerCoords.length > 0 && innerCoords2.length > 0){
             google.maps.Map.prototype.clearMarkers;
               map.data.add({geometry: new google.maps.Data.Polygon([outerCoords,innerCoords, innerCoords2])});
               //sends request to backend
               $.ajax({
                   type: 'POST',
                   url: '/api/processing',
-                  data: JSON.stringify ({outer: outerCoords, inner: innerCoords, inner2: innerCoords2}),
+                  data: JSON.stringify ({outer: outerCoords, inner: innerCoords, inner2: innerCoords2, radius: radius, speed: speed, batt_life: batt_life}),
                   success: function(data) { initAnimation(data) },
                   contentType: "application/json",
                   dataType: 'json'
@@ -203,7 +265,7 @@
                   dataType: 'json'
               });
           }
-      });
+    }
 
     function initAnimation(path){
         var speed = 200; // km/h
