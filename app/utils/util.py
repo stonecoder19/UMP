@@ -511,6 +511,8 @@ def convert_coords_geo_to_euclidean(outer_coord_list,inner_poly_coords):
 	euc_poly = create_poly_from_coords(new_outer_coord_list)
 	euc_rect = create_rect_from_poly(euc_poly)
 
+
+
 	new_inner_polys=[]
 	for inner_coord_lst in inner_poly_coords:
 		inner_poly = create_poly_from_coords(inner_coord_lst)
@@ -525,7 +527,7 @@ def convert_coords_geo_to_euclidean(outer_coord_list,inner_poly_coords):
 
 
 
-def convert_euclidean_path_to_geo(path,euc_rect,geo_rect):
+def convert_euclidean_path_to_geo(path,euc_rect,geo_rect,radius):
 	
 	screen_width = euc_rect.width
 	screen_height = euc_rect.height
@@ -536,7 +538,13 @@ def convert_euclidean_path_to_geo(path,euc_rect,geo_rect):
 		x_geo = ((float(x)/float(screen_width)) * geo_rect.width) + geo_rect.top_left.x
 		y_geo = ((float(y)/float(screen_height))* geo_rect.height) + geo_rect.top_left.y
 		geo_path.append(convert_coord_to_geo((x_geo,y_geo)))
-	return geo_path
+	sense_range_x = ((float(radius)/float(screen_width)) * geo_rect.width) + geo_rect.top_left.x
+	sense_range_y = ((float(0)/float(screen_height))* geo_rect.height) + geo_rect.top_left.y
+
+	origin_x = ((float(0)/float(screen_width)) * geo_rect.width) + geo_rect.top_left.x
+	origin_y = ((float(0)/float(screen_height))* geo_rect.height) + geo_rect.top_left.y
+
+	return geo_path,convert_coord_to_geo((sense_range_x,sense_range_y)),convert_coord_to_geo((origin_x,origin_y))
 
 
 
@@ -574,8 +582,8 @@ def get_final_path(outerbounds,innerbounds1,innerbounds2,radius):
 	visited = []
 	print("Computing..")
 	visited = calc_path(graph,poly_list,counter,way_lst)
-	geo_path = convert_euclidean_path_to_geo(visited,border_rect,geo_rect)
-	return geo_path
+	geo_path,radius,origin = convert_euclidean_path_to_geo(visited,border_rect,geo_rect,radius)
+	return geo_path,radius,origin
 
 
 def calc_path(graph,poly_list, counter, way_lst):

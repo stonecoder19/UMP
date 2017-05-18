@@ -201,7 +201,7 @@
                 if(radius && speed && batt_life) {
                     var progressDialog = document.getElementById('modal5');
                     progressDialog.showModal();
-                    makeAPICall(radius, speed, batt_life);
+                    makeAPICall(parseInt(radius), parseInt(speed), parseInt(batt_life));
                 }
             }
         });
@@ -281,9 +281,17 @@
         }
     }
 
-    function postSuccess(radius,speed,batt_life,data) {
+    function postSuccess(radius_point,origin_point,speed,batt_life,data) {
         var doneBtn = document.getElementById('done');
         doneBtn.style.display = 'none';
+
+        console.log(data);
+        console.log(radius_point);
+        console.log(origin_point);
+
+        var circle_radius = computeDistanceBetween(origin_point,radius_point)
+
+        console.log(circle_radius+"meters radius");
 
        
         var tot_dist = calcTotalDistance(data);
@@ -309,7 +317,7 @@
         var progressDialog = document.getElementById('modal5');
         progressDialog.close();
 
-        initAnimation(data);
+        initAnimation(data,speed,circle_radius);
     }
 
     function makeAPICall(radius,speed,batt_life)
@@ -321,8 +329,8 @@
               $.ajax({
                   type: 'POST',
                   url: '/api/processing',
-                  data: JSON.stringify ({outer: outerCoords, inner: innerCoords, inner2: innerCoords2}),
-                  success: function(data) { postSuccess(radius,speed,batt_life,data); },
+                  data: JSON.stringify ({outer: outerCoords, inner: innerCoords, inner2: innerCoords2, radius: radius}),
+                  success: function(data) { postSuccess(data['radius'],data['origin'],speed,batt_life,data['path']); },
                   contentType: "application/json",
                   dataType: 'json'
               });
@@ -344,7 +352,7 @@
         }
     }
 
-    function initAnimation(path,speed){
+    function initAnimation(path,speed,circle_radius){
         //var speed = 200; // km/h
 
         var delay = 100;
@@ -364,10 +372,10 @@
            map: map
         });
 
-        animateMarker(map,drone_marker,path, speed,delay);
+        animateMarker(map,drone_marker,path, speed,delay,circle_radius);
     }
 
-    function animateMarker(map,marker, coords, km_h,delay)
+    function animateMarker(map,marker, coords, km_h,delay,circle_radius)
     {
         var target = 0;
         var km_h = km_h || 200;
@@ -419,14 +427,28 @@
                     flightPlanCoordinates.push(point2);     
 
 
-                    var flightPath = new google.maps.Polyline({
+                    /*var flightPath = new google.maps.Polyline({
                         path: flightPlanCoordinates,
                         geodesic: true,
                         strokeColor: '#FF0000',
                         strokeOpacity: 3.0,
                         strokeWeight: 4
                     });
-                    flightPath.setMap(map);  
+                    flightPath.setMap(map);*/
+                    
+          // Add the circle for this city to the map.
+                    var cityCircle = new google.maps.Circle({
+                        strokeColor: '#FF0000',
+                        strokeOpacity: 0.8,
+                        strokeWeight: 2,
+                        fillColor: '#FF0000',
+                        fillOpacity: 0.35,
+                        center: new google.maps.LatLng(coords[target-1][0], coords[target-1][1]),
+                        radius: circle_radius
+                    });
+
+                    cityCircle.setMap(map);
+          
                     if(target< coords.length){
                         setTimeout(goToPoint, delay);
                     }else{

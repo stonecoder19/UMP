@@ -30,16 +30,13 @@ def coordinates():
     if request.json['inner2']:
 	    innerbounds2 = request.json['inner2']
 	    print innerbounds2
+    if request.json['radius']:
+        radius = request.json['radius']
     data = []
-    path = get_final_path(outerbounds,innerbounds1,innerbounds2,30)
-    print(len(path))
+    path,radius_point,origin = get_final_path(outerbounds,innerbounds1,innerbounds2,radius)
     print(path)
-    for p in path:
-        coord={}
-        coord['lat'] = p[0]
-        coord['lng'] = p[1]
-        data.append(p)
-    return jsonify(path)
+    
+    return jsonify(path=path,radius=radius_point,origin=origin)
 
 
 
