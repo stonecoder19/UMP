@@ -59,7 +59,7 @@
     function initMap() {
         map = new google.maps.Map(document.getElementById('map'), {
           zoom: 14,
-          center: {lat: 18.0078, lng: -76.8654},  // Center the map on Kingston, Jamaica.
+          center: {lat: 18.005993538736647, lng: -76.74689412117004},  // Center the map on Kingston, Jamaica.
           mapTypeId: 'terrain'
         });
 
