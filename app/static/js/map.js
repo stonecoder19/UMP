@@ -258,6 +258,8 @@
             tot_time+= (tot_dist/convertSpeedToMetersPerSecond(speed))/60
             if(tot_time >= batt_life)
             {
+                console.log(tot_dist);
+                console.log(tot_time);
                 tot_dist=0;
                 tot_time=0;
                 recharge_spots.push(path_list[i+1])
@@ -292,7 +294,7 @@
 
         placeRechargeSpots(data,batt_life,speed);
 
-        bindFlightPlanDataToModal(tot_dist, flight_time, speed, nwp);
+        bindFlightPlanDataToModal(tot_dist, flight_to_mins, speed, nwp);
 
         $('#add').off('click');
 
@@ -342,14 +344,14 @@
         }
     }
 
-    function initAnimation(path){
-        var speed = 200; // km/h
+    function initAnimation(path,speed){
+        //var speed = 200; // km/h
 
         var delay = 100;
         startPos = path[0]
         var startPt = new google.maps.LatLng(startPos[0],startPos[1])
         map.setCenter(startPt)
-        map.setZoom(30)
+        //map.setZoom(20)
         var drone_icon = {
             url: "https://d30y9cdsu7xlg0.cloudfront.net/png/156824-200.png", // url
             scaledSize: new google.maps.Size(30, 30), // scaled size
