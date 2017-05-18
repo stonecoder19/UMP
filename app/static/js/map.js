@@ -199,6 +199,8 @@
                 var batt_life = document.getElementById('batt_life').value;
 
                 if(radius && speed && batt_life) {
+                    var progressDialog = document.getElementById('modal5');
+                    progressDialog.showModal();
                     makeAPICall(radius, speed, batt_life);
                 }
             }
@@ -209,8 +211,8 @@
     function bindFlightPlanDataToModal(tot_dist, flight_time, avg_speed, nwp) {
         var fields = document.getElementById('summary_fields').children;
 
-        fields[0].innerHTML += tot_dist;
-        fields[1].innerHTML += flight_time;
+        fields[0].innerHTML += Math.round(tot_dist) +"m";
+        fields[1].innerHTML += Math.round(flight_time)+"mins";
         fields[2].innerHTML += avg_speed;
         fields[3].innerHTML += nwp;
     }
@@ -301,6 +303,9 @@
         });
 
         $('#add').click(function() { summaryModal.showModal(); });
+
+        var progressDialog = document.getElementById('modal5');
+        progressDialog.close();
 
         initAnimation(data);
     }
