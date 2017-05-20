@@ -379,6 +379,7 @@
     {
         var target = 0;
         var km_h = km_h || 200;
+        var done = false
         
 
         function goToPoint()
@@ -419,39 +420,38 @@
                     marker.setPosition(dest);
                     target++;
                     //if (target == coords.length){ target = 0; }
+                    if(target < coords.length){
+                        var flightPlanCoordinates=[]
+                        var point1 = new google.maps.LatLng(lat,lng);
+                        var point2  = new google.maps.LatLng(coords[target][0], coords[target][1]);
+                        flightPlanCoordinates.push(point1);
+                        flightPlanCoordinates.push(point2);     
 
-                    var flightPlanCoordinates=[]
-                    var point1 = new google.maps.LatLng(lat,lng);
-                    var point2  = new google.maps.LatLng(coords[target][0], coords[target][1]);
-                    flightPlanCoordinates.push(point1);
-                    flightPlanCoordinates.push(point2);     
 
+                        var flightPath = new google.maps.Polyline({
+                            path: flightPlanCoordinates,
+                            geodesic: true,
+                            strokeColor: '#FF0000',
+                            strokeOpacity: 3.0,
+                            strokeWeight: 4
+                        });
+                        flightPath.setMap(map);
+                        
+              // Add the circle for this city to the map.
+                        var cityCircle = new google.maps.Circle({
+                            strokeColor: '#FF0000',
+                            strokeOpacity: 0.8,
+                            strokeWeight: 2,
+                            fillColor: '#FF0000',
+                            fillOpacity: 0.35,
+                            center: new google.maps.LatLng(coords[target-1][0], coords[target-1][1]),
+                            radius: circle_radius
+                        });
 
-                    /*var flightPath = new google.maps.Polyline({
-                        path: flightPlanCoordinates,
-                        geodesic: true,
-                        strokeColor: '#FF0000',
-                        strokeOpacity: 3.0,
-                        strokeWeight: 4
-                    });
-                    flightPath.setMap(map);*/
-                    
-          // Add the circle for this city to the map.
-                    var cityCircle = new google.maps.Circle({
-                        strokeColor: '#FF0000',
-                        strokeOpacity: 0.8,
-                        strokeWeight: 2,
-                        fillColor: '#FF0000',
-                        fillOpacity: 0.35,
-                        center: new google.maps.LatLng(coords[target-1][0], coords[target-1][1]),
-                        radius: circle_radius
-                    });
-
-                    cityCircle.setMap(map);
-          
-                    if(target< coords.length){
+                        cityCircle.setMap(map);
                         setTimeout(goToPoint, delay);
                     }else{
+
                         alert("All Done");
                     }
                 

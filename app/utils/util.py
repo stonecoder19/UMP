@@ -400,7 +400,7 @@ def check_if_edge_interects_poly(polygon,point1,point2):
 			return True
 	return False
 
-def create_graph_from_map(poly_list,points_list):
+def create_graph_from_map(border_poly,poly_list,points_list):
 	
 	graph = Graph()
 	
@@ -419,8 +419,10 @@ def create_graph_from_map(poly_list,points_list):
 						if(check_if_edge_interects_poly(poly,Point(points_list[j][0],points_list[j][1]),Point(points_list[k][0],points_list[k][1]))):
 							isIntersect = True
 							break
-					if(isIntersect==False):
+
+					if(isIntersect==False and not check_if_edge_interects_poly(border_poly,Point(points_list[j][0],points_list[j][1]),Point(points_list[k][0],points_list[k][1]))):
 						graph.add_edge(str(j),str(k))
+					
 
 	for node_id in graph.get_nodes():
 		node = graph.get_node(node_id)
@@ -558,6 +560,7 @@ def get_final_path(outerbounds,innerbounds1,innerbounds2,radius):
 	outer_coord_list,inner_poly_coords = convert_json_to_polys(outerbounds,innerbounds1,innerbounds2)
 	new_outer_coord_list, new_inner_polys,geo_rect,border_rect = convert_coords_geo_to_euclidean(outer_coord_list,inner_poly_coords)
 	border_poly = create_poly_from_coords(new_outer_coord_list)
+	print(border_poly.get_vert_list())
 	poly_list = []
 	for poly in new_inner_polys:
 		poly_list.append(create_poly_from_coords(poly))
@@ -567,7 +570,7 @@ def get_final_path(outerbounds,innerbounds1,innerbounds2,radius):
 
 
 	# print("Creating graph")
-	graph = create_graph_from_map(poly_list,points)
+	graph = create_graph_from_map(border_poly,poly_list,points)
 	mst = MST(graph)
 
 	# print("Calculating mst")
@@ -581,12 +584,12 @@ def get_final_path(outerbounds,innerbounds1,innerbounds2,radius):
 	counter = 1
 	visited = []
 	print("Computing..")
-	visited = calc_path(graph,poly_list,counter,way_lst)
+	visited = calc_path(graph,poly_list,counter,way_lst,border_poly)
 	geo_path,radius,origin = convert_euclidean_path_to_geo(visited,border_rect,geo_rect,radius)
 	return geo_path,radius,origin
 
 
-def calc_path(graph,poly_list, counter, way_lst):
+def calc_path(graph,poly_list, counter, way_lst,border_poly):
 	visited=[]
 	while (counter<len(way_lst)-1):
 		counter+=1
@@ -606,7 +609,7 @@ def calc_path(graph,poly_list, counter, way_lst):
 				else:
 					points_list.append(graph.get_node(node_id).get_pos())
 			points_list.append(way_lst[counter-1])
-			graph = create_graph_from_map(poly_list,points_list)
+			graph = create_graph_from_map(border_poly,poly_list,points_list)
 			if(graph.find_node_from_position(way_lst[counter-1]) == None):
 					#closest_node = get_closest_node(graph,way_lst[counter-1])
 					#closest_pos = graph.get_node(closest_node).get_pos()
@@ -618,7 +621,7 @@ def calc_path(graph,poly_list, counter, way_lst):
 						is_intersect = False
 						for poly in poly_list:
 							pos = old_graph.get_node(p).get_pos()
-							is_intersect = check_if_edge_interects_poly(poly,Point(pos[0],pos[1]),Point(closest_pos[0],closest_pos[1]))
+							is_intersect = check_if_edge_interects_poly(poly,Point(pos[0],pos[1]),Point(closest_pos[0],closest_pos[1])) or check_if_edge_interects_poly(border_poly,Point(pos[0],pos[1]),Point(closest_pos[0],closest_pos[1]))
 							if is_intersect == True:
 								break
 						
@@ -632,7 +635,7 @@ def calc_path(graph,poly_list, counter, way_lst):
 							break
 						
 						count+=1
-					graph = create_graph_from_map(poly_list,points_list)
+					graph = create_graph_from_map(border_poly,poly_list,points_list)
 
 			
 			mst = MST(graph)
@@ -641,7 +644,7 @@ def calc_path(graph,poly_list, counter, way_lst):
 			way_lst = init_mst_way_list(graph,way_lst[counter-1])
 			counter = 1
 	final_node = graph.find_node_from_position(way_lst[counter])
-	visited+=[graph.get_node(final_node).get_pos()]
+	visited.append(graph.get_node(final_node).get_pos())
 	return visited
 
 def init_poly_list(poly_sides,num_poly):
