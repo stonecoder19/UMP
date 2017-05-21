@@ -400,7 +400,7 @@
             var deltaLat = (coords[target][0] - lat) / numStep;
             var deltaLng = (coords[target][1] - lng) / numStep;
 
-            console.log("Lat " + lat+"" + "Lng " + lng+"");
+            
             function moveMarker()
             {
                 lat += deltaLat;
@@ -416,8 +416,9 @@
                 {
                     
 
-                     
+                    console.log("Lat " + dest.lat+"" + "Lng " + dest.lng+""); 
                     marker.setPosition(dest);
+
                     target++;
                     //if (target == coords.length){ target = 0; }
                     if(target < coords.length){

@@ -574,6 +574,7 @@ def get_final_path(outerbounds,innerbounds1,innerbounds2,radius):
 
 	# print("Creating graph")
 	graph = create_graph_from_map(border_poly,poly_list,points)
+	connected_graph = copy.deepcopy(graph)
 	mst = MST(graph)
 
 	# print("Calculating mst")
@@ -587,13 +588,14 @@ def get_final_path(outerbounds,innerbounds1,innerbounds2,radius):
 	counter = 1
 	visited = []
 	print("Computing..")
-	visited = calc_path(graph,poly_list,counter,way_lst,border_poly)
+	visited = calc_path(graph,connected_graph,poly_list,counter,way_lst,border_poly)
 	geo_path,radius,origin = convert_euclidean_path_to_geo(visited,border_rect,geo_rect,radius)
 	return geo_path,radius,origin
 
 
-def calc_path(graph,poly_list, counter, way_lst,border_poly):
+def calc_path(graph,connected_graph,poly_list, counter, way_lst,border_poly):
 	visited=[]
+	visited.append(way_lst[0])
 	while (counter<len(way_lst)-1):
 		counter+=1
 		
@@ -617,7 +619,16 @@ def calc_path(graph,poly_list, counter, way_lst,border_poly):
 			
 			points_list.append(way_lst[counter-1])
 			unvisited.append(current_node)
-			graph = create_graph_from_map(border_poly,poly_list,points_list)
+
+			for node_id in connected_graph.get_nodes():
+				if connected_graph.get_node(node_id).get_pos() not in points_list:
+					connected_graph.remove_node(node_id)
+
+			graph = copy.deepcopy(connected_graph)
+			
+			
+
+
 			orphaned=[]
 			for node_id in unvisited:
 				if graph.find_node_from_position(old_graph.get_node(node_id).get_pos())==None:
@@ -647,7 +658,11 @@ def calc_path(graph,poly_list, counter, way_lst,border_poly):
 								break
 							
 							count+=1
-				graph = create_graph_from_map(border_poly,poly_list,points_list)
+
+				for node_id in connected_graph.get_nodes():
+					if connected_graph.get_node(node_id).get_pos() not in points_list:
+						connected_graph.remove_node(node_id)
+				graph = copy.deepcopy(connected_graph)
 				
 
 			
@@ -663,7 +678,11 @@ def calc_path(graph,poly_list, counter, way_lst,border_poly):
 				while(way_lst==None or count>len(removed)):
 					node_id = removed[count]
 					points_list.append(old_graph.get_node(node_id).get_pos())
-					graph = create_graph_from_map(border_poly,poly_list,points_list)
+
+					for node_id in connected_graph.get_nodes():
+						if connected_graph.get_node(node_id).get_pos() not in points_list:
+							connected_graph.remove_node(node_id)
+					graph = copy.deepcopy(connected_graph)
 					mst = MST(graph)
 					graph = mst.compute_mst()
 					count+=1
