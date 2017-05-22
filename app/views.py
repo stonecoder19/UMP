@@ -9,6 +9,7 @@ from app import app
 from flask import render_template, request, redirect, url_for, flash,jsonify
 import smtplib
 from utils.util import *
+import time
 
 
 ###
@@ -33,7 +34,10 @@ def coordinates():
     if request.json['radius']:
         radius = request.json['radius']
     data = []
+    time1 = time.time()
     path,radius_point,origin = get_final_path(outerbounds,innerbounds1,innerbounds2,radius)
+    time2 = time.time()
+    print(str(time2-time1) + "seconds")
     print(path)
     
     return jsonify(path=path,radius=radius_point,origin=origin)

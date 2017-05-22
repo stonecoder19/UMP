@@ -1,6 +1,8 @@
 import math
 import sys
 from Graph import Graph
+from BHeap import BHeap
+import time
 
 class MST:
     
@@ -25,6 +27,8 @@ class MST:
         new_graph = Graph()
         visited = []
         adjacency_matrix = {}
+        bheap = BHeap()
+        
         
         #iterates over each node in graph and adds only nodes with neighbours to the new graph
         for node in self.graph.get_nodes():
@@ -39,13 +43,25 @@ class MST:
         
         while count < len(self.graph.get_nodes()):
             neighbours = self.graph.get_node(current_node).get_neighbors()
-            row = {}
+            #row = {}
             for j in neighbours:
-                row[j] = self.graph.get_node(current_node).get_cost(j)
+                bheap.insert((current_node,j,self.graph.get_node(current_node).get_cost(j)))
+            #    row[j] = self.graph.get_node(current_node).get_cost(j)
                 
-            adjacency_matrix[current_node] = row
+            #adjacency_matrix[current_node] = row
 
-            min_from, min_to = self.select_min_edge(adjacency_matrix, visited)
+            min_el = bheap.peak()
+            if min_el == None:
+                continue
+            min_from,min_to = min_el[0],min_el[1]
+            while(min_to in visited):
+                min_el = bheap.extract_min()
+                if min_el == None:
+                    continue
+                min_from,min_to = min_el[0],min_el[1]
+
+
+            #min_from, min_to = self.select_min_edge(adjacency_matrix, visited)
             count += 1
             if min_from == -1 or min_to == -1:
                 continue
@@ -104,6 +120,20 @@ class MST:
             matrix[node_id] = row_matrix
         return matrix
 
+    def compute_adjacency_list(self):
+        adjacency_list = []
+        count = 0
+        for node_id in self.graph.get_nodes():
+            node = self.graph.get_node(node_id)
+            for neighbour_id in self.graph.get_nodes():
+                if not node_id == neighbour_id:
+                    cost = node.get_cost(neighbour_id)
+
+
+                
+        return matrix
+
+
 
 
 def main():
@@ -138,7 +168,10 @@ def main():
     graph.print_graph()
 
     mst = MST(graph)
+    time1 = time.time()
     new_graph = mst.compute_mst()
+    time2 = time.time()
+    print("Time taken: " + str(time2-time1))
     new_graph.print_graph()
 
 
