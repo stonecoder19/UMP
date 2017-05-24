@@ -8,6 +8,7 @@ import time
 import math
 import sys
 import copy
+import random
 
 
 def init_waypoint_list(graph):
@@ -667,7 +668,9 @@ def calc_path(graph,connected_graph,poly_list, counter, way_lst,border_poly):
 
 			
 			mst = MST(graph)
+			print("Computing tree")
 			graph = mst.compute_mst()
+			print("Done Computing tree")
 			graph.set_node_visited(graph.find_node_from_position(way_lst[counter-1]))
 			way_lst = init_mst_way_list(graph,way_lst[counter-1])
 
@@ -675,19 +678,30 @@ def calc_path(graph,connected_graph,poly_list, counter, way_lst,border_poly):
 			if(way_lst == None):
 				print("Disjoint")
 				count =0
-				while(way_lst==None or count>len(removed)):
-					node_id = removed[count]
-					points_list.append(old_graph.get_node(node_id).get_pos())
+				if(len(removed) > 0):
+					while(count<(len(removed))):
+						print("Removed " + str(len(removed)))
+						print("Count " + str(count))
+						node_id = removed[count]
+						points_list.append(old_graph.get_node(node_id).get_pos())
 
-					for node_id in connected_graph.get_nodes():
-						if connected_graph.get_node(node_id).get_pos() not in points_list:
-							connected_graph.remove_node(node_id)
-					graph = copy.deepcopy(connected_graph)
-					mst = MST(graph)
-					graph = mst.compute_mst()
-					count+=1
-					graph.set_node_visited(graph.find_node_from_position(last_pos))
-					way_lst = init_mst_way_list(graph,last_pos)
+						for node_id in connected_graph.get_nodes():
+							if connected_graph.get_node(node_id).get_pos() not in points_list:
+								connected_graph.remove_node(node_id)
+						graph = copy.deepcopy(connected_graph)
+						mst = MST(graph)
+						graph = mst.compute_mst()
+						count+=1
+						graph.set_node_visited(graph.find_node_from_position(last_pos))
+						way_lst = init_mst_way_list(graph,last_pos)
+						if not way_lst == None:
+							break
+					
+
+					
+
+
+					# Random sampling
 					
 
 

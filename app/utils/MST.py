@@ -42,6 +42,7 @@ class MST:
         count = 1 #used as a terminator for the loop
         
         while count < len(self.graph.get_nodes()):
+            
             neighbours = self.graph.get_node(current_node).get_neighbors()
             #row = {}
             for j in neighbours:
@@ -52,19 +53,20 @@ class MST:
 
             min_el = bheap.peak()
             if min_el == None:
-                continue
+                break
             min_from,min_to = min_el[0],min_el[1]
             while(min_to in visited):
                 min_el = bheap.extract_min()
                 if min_el == None:
-                    continue
+                    min_from,min_to = -1,-1
+                    break
                 min_from,min_to = min_el[0],min_el[1]
 
 
-            #min_from, min_to = self.select_min_edge(adjacency_matrix, visited)
+          #~  min_from, min_to = self.select_min_edge(adjacency_matrix, visited)
             count += 1
             if min_from == -1 or min_to == -1:
-                continue
+                break
             new_graph.add_edge(min_from, min_to)
             current_node = min_to
             visited.append(current_node)
@@ -120,18 +122,7 @@ class MST:
             matrix[node_id] = row_matrix
         return matrix
 
-    def compute_adjacency_list(self):
-        adjacency_list = []
-        count = 0
-        for node_id in self.graph.get_nodes():
-            node = self.graph.get_node(node_id)
-            for neighbour_id in self.graph.get_nodes():
-                if not node_id == neighbour_id:
-                    cost = node.get_cost(neighbour_id)
-
-
-                
-        return matrix
+    
 
 
 
