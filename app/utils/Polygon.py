@@ -64,7 +64,7 @@ class Polygon:
             float:max x coord
 
         """
-        prev_high = 0
+        prev_high = self.vertices[0].x
         for vert in self.vertices:
             if vert.x >= prev_high:
                 prev_high = vert.x
