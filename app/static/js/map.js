@@ -255,11 +255,11 @@
         for (var i=0; i<path_list.length-1;i++)
         {
             tot_dist+=computeDistanceBetween(path_list[i],path_list[i+1])
-            tot_time+= (tot_dist/convertSpeedToMetersPerSecond(speed))/60
+            tot_time+= ((tot_dist/convertSpeedToMetersPerSecond(speed))/60)
             if(tot_time >= batt_life)
             {
-                console.log(tot_dist);
-                console.log(tot_time);
+                console.log(tot_dist + "metres");
+                console.log(tot_time + "minutes");
                 tot_dist=0;
                 tot_time=0;
                 recharge_spots.push(path_list[i+1])
@@ -281,26 +281,24 @@
         }
     }
 
-    function postSuccess(radius_point,origin_point,speed,batt_life,data) {
+    function postSuccess(radius_dist,speed,batt_life,path) {
         var doneBtn = document.getElementById('done');
         doneBtn.style.display = 'none';
 
-        console.log(data);
-        console.log(radius_point);
-        console.log(origin_point);
+        console.log(path);
 
-        var circle_radius = computeDistanceBetween(origin_point,radius_point)
+        var circle_radius = radius_dist;
 
         console.log(circle_radius+"meters radius");
 
        
-        var tot_dist = calcTotalDistance(data);
+        var tot_dist = calcTotalDistance(path);
         var flight_time = tot_dist/convertSpeedToMetersPerSecond(speed);
         var flight_to_mins = flight_time/60; //time in minutes
         var speed=speed;
-        var nwp=data.length;
+        var nwp=path.length;
 
-        placeRechargeSpots(data,batt_life,speed);
+        placeRechargeSpots(path,batt_life,speed);
 
         bindFlightPlanDataToModal(tot_dist, flight_to_mins, speed, nwp);
 
@@ -317,7 +315,7 @@
         var progressDialog = document.getElementById('modal5');
         progressDialog.close();
 
-        initAnimation(data,speed,circle_radius);
+        initAnimation(path,speed,circle_radius);
     }
 
     function makeAPICall(radius,speed,batt_life)
@@ -330,7 +328,7 @@
                   type: 'POST',
                   url: '/api/processing',
                   data: JSON.stringify ({outer: outerCoords, inner: innerCoords, inner2: innerCoords2, radius: radius}),
-                  success: function(data) { postSuccess(data['radius'],data['origin'],speed,batt_life,data['path']); },
+                  success: function(data) { postSuccess(radius,speed,batt_life,data['path']); },
                   contentType: "application/json",
                   dataType: 'json'
               });
@@ -411,6 +409,17 @@
                 {
                     marker.setPosition(new google.maps.LatLng(lat, lng));
                     setTimeout(moveMarker, delay);
+                    var cityCircle = new google.maps.Circle({
+                            strokeColor: '#FF0000',
+                            strokeOpacity: 0.8,
+                            strokeWeight: 2,
+                            fillColor: '#FF0000',
+                            fillOpacity: 0.35,
+                            center: new google.maps.LatLng(lat,lng),
+                            radius: circle_radius
+                    });
+
+                    cityCircle.setMap(map);
                 }
                 else
                 {
@@ -432,14 +441,14 @@
                         var flightPath = new google.maps.Polyline({
                             path: flightPlanCoordinates,
                             geodesic: true,
-                            strokeColor: '#FF0000',
+                            strokeColor: '#0000FF',
                             strokeOpacity: 3.0,
                             strokeWeight: 4
                         });
                         flightPath.setMap(map);
                         
               // Add the circle for this city to the map.
-                        var cityCircle = new google.maps.Circle({
+                        /*var cityCircle = new google.maps.Circle({
                             strokeColor: '#FF0000',
                             strokeOpacity: 0.8,
                             strokeWeight: 2,
@@ -449,7 +458,7 @@
                             radius: circle_radius
                         });
 
-                        cityCircle.setMap(map);
+                        cityCircle.setMap(map);*/
                         setTimeout(goToPoint, delay);
                     }else{
 

@@ -7,7 +7,7 @@ def draw_waypoint(gameDisplay, node):
 		color = (255,0,0)
 	pygame.draw.circle(gameDisplay,color,node.get_pos(),2)
 
-def draw_waypoints(points_list):
+def draw_waypoints(gameDisplay,points_list):
 	for point in points_list:
 		pygame.draw.circle(gameDisplay,(0,0,255),point,2)
 

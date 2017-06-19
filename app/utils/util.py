@@ -9,6 +9,8 @@ import math
 import sys
 import copy
 import random
+from gfx import *
+import pygame
 
 
 def init_waypoint_list(graph):
@@ -25,6 +27,22 @@ def init_radius_points(width,height,radius):
 	for i in range(0,num_rows):
 		for j in range(0,num_cols):
 			pos_lst.append(((j*(radius*2)+(radius)),(i*(radius*2))+(radius)))
+
+	fringe_nodes = []
+	space_left_width = width - (num_rows * radius*2)
+	space_left_height = height - (num_cols * radius * 2)
+	pos_x = (num_cols * radius * 2) + (space_left_width/2)
+	pos_y = (num_rows * radius * 2) + (space_left_height/2)
+
+	for k in range(0,num_cols-1):
+		pos_lst.append((k*(radius*2)+radius,pos_y))
+
+	for l in range(0,num_rows-1):
+		pos_lst.append((pos_x,l*(radius*2)+radius))
+
+	pos_lst.append(((num_cols*radius*2)+(space_left_width/2),(num_rows*radius*2)+(space_left_height/2)))
+
+
 	return pos_lst
 
 def remove_points(square_list,points_list):
@@ -500,33 +518,17 @@ def convert_coord_to_geo(euc_coord):
 	return (int_to_geo(lat_i),int_to_geo(lng_i))
 
 
+def polygon_area(polygon):
+	area = 0
+	num_verts = len(polygon.vertices)
+	j = num_verts-1
+	for i in range(0,num_verts):
+		area += ( polygon.vertices[j].x+polygon.vertices[i].x) * (polygon.vertices[j].y-polygon.vertices[i].y)
+		j = i
+	return area/2
+
+
 def convert_json_to_polys(outerbounds,innerbounds1,innerbounds2):
-    outer_coord_list = []
-    for coord in outerbounds:
-    	lat = coord['lat']
-    	lon = coord['lng']
-    	outer_coord_list.append(convert_180_to_360((lat,lon)))
-	
-	incoord1_list = []
-	
-	for incoord1 in innerbounds1:
-		lat1 = incoord1['lat']
-		lon1 = incoord1['lng']
-		incoord1_list.append(convert_180_to_360((lat1,lon1)))
-
-	incoord2_list=[]
-	for incoord2 in innerbounds2:
-		lat2 = incoord2['lat']
-		lon2 = incoord2['lng']
-		incoord2_list.append(convert_180_to_360((lat2,lon2)))
-	inner_poly_coords = []
-	inner_poly_coords.append(incoord1_list)
-	inner_poly_coords.append(incoord2_list)
-    
-    return outer_coord_list,inner_poly_coords
-
-
-def convert_json_to_polys_2(outerbounds,innerbounds1,innerbounds2):
     outer_coord_list = []
     for coord in outerbounds:
     	lat = coord['lat']
@@ -552,41 +554,9 @@ def convert_json_to_polys_2(outerbounds,innerbounds1,innerbounds2):
     return outer_coord_list,inner_poly_coords
 
 
-def convert_coords_geo_to_euclidean(outer_coord_list,inner_poly_coords):
-	outer_poly = create_poly_from_coords(outer_coord_list)
-	poly_rect = create_rect_from_poly(outer_poly)
-	max_width = 0
-	if(poly_rect.width>poly_rect.height):
-		max_width = 800
-		max_height = int((float(poly_rect.height)/float(poly_rect.width)) * 800)
-	else:
-		max_height = 800
-		max_width = int((float(poly_rect.width)/float(poly_rect.height))* 800)
-
-	new_outer_coord_list = []
-	for coord in outer_coord_list:
-		x = int((float(math.fabs(poly_rect.top_left.x - coord[0])) / float(poly_rect.width)) * max_width)
-		y = int((float(math.fabs(poly_rect.top_left.y - coord[1])) / float(poly_rect.height)) * max_height)
-		new_outer_coord_list.append((x,y))
-	
-	euc_poly = create_poly_from_coords(new_outer_coord_list)
-	euc_rect = create_rect_from_poly(euc_poly)
 
 
-
-	new_inner_polys=[]
-	for inner_coord_lst in inner_poly_coords:
-		inner_poly = create_poly_from_coords(inner_coord_lst)
-		#poly_rect = create_rect_from_poly(inner_poly)
-		new_inner_poly_coord_lst = []
-		for coord in inner_coord_lst:
-			x = int((float(math.fabs(poly_rect.top_left.x - coord[0])) / float(poly_rect.width)) * max_width)
-			y = int((float(math.fabs(poly_rect.top_left.y - coord[1])) / float(poly_rect.height)) * max_height)
-			new_inner_poly_coord_lst.append((x,y))
-		new_inner_polys.append(new_inner_poly_coord_lst)
-	return new_outer_coord_list,new_inner_polys,poly_rect,euc_rect
-
-def convert_coords_geo_to_euclidean_2(outer_coord_list,inner_poly_coords):
+def convert_coords_geo_to_euclidean(outer_coord_list,inner_poly_coords,radius_dist):
 
 	outer_poly = create_poly_from_coords(outer_coord_list)
 	max_y_coord = outer_poly.get_far_bottom()
@@ -609,7 +579,7 @@ def convert_coords_geo_to_euclidean_2(outer_coord_list,inner_poly_coords):
 	geo_rect = Rect(Point(min_x_coord,max_y_coord),outer_width,outer_height)
 	
 	max_width = 0
-	if(outer_width>outer_height):
+	if(outer_width > outer_height):
 		max_width = 800
 		max_height = int((outer_height/outer_width) * 800)
 	else:
@@ -637,7 +607,9 @@ def convert_coords_geo_to_euclidean_2(outer_coord_list,inner_poly_coords):
 			y = int((calculate_haversine_distance((max_y_coord,min_x_coord),(coord[1],min_x_coord)) / outer_height) * max_height)
 			new_inner_poly_coord_lst.append((x,y))
 		new_inner_polys.append(new_inner_poly_coord_lst)
-	return new_outer_coord_list,new_inner_polys,geo_rect,euc_rect
+
+	radius_euc = int((radius_dist / outer_width) * max_width)
+	return new_outer_coord_list,new_inner_polys,geo_rect,euc_rect,radius_euc
 
 
 
@@ -649,36 +621,17 @@ def convert_euclidean_path_to_geo(path,euc_rect,geo_rect,radius):
 	for waypoint in path:
 		x = waypoint[0]
 		y = waypoint[1]
-		x_geo = ((float(x)/float(screen_width)) * geo_rect.width) + geo_rect.top_left.x
-		y_geo = ((float(y)/float(screen_height))* geo_rect.height) + geo_rect.top_left.y
-		geo_path.append(convert_coord_to_geo((x_geo,y_geo)))
-	sense_range_x = ((float(radius)/float(screen_width)) * geo_rect.width) + geo_rect.top_left.x
-	sense_range_y = ((float(0)/float(screen_height))* geo_rect.height) + geo_rect.top_left.y
-
-	origin_x = ((float(0)/float(screen_width)) * geo_rect.width) + geo_rect.top_left.x
-	origin_y = ((float(0)/float(screen_height))* geo_rect.height) + geo_rect.top_left.y
-
-	return geo_path,convert_coord_to_geo((sense_range_x,sense_range_y)),convert_coord_to_geo((origin_x,origin_y))
-
-def convert_euclidean_path_to_geo_2(path,euc_rect,geo_rect,radius):
-	
-	screen_width = euc_rect.width
-	screen_height = euc_rect.height
-	geo_path = []
-	for waypoint in path:
-		x = waypoint[0]
-		y = waypoint[1]
 		lat = find_latlng_by_start_point_bearing((geo_rect.top_left.y,geo_rect.top_left.x),((float(y)/screen_height) * geo_rect.height),180.0)[0]  
 		lng = find_latlng_by_start_point_bearing((geo_rect.top_left.y,geo_rect.top_left.x),((float(x)/screen_width) * geo_rect.width),90.0)[1]  
 		geo_path.append((lat,lng))
 	
-	sense_range_lat = geo_rect.top_left.y
-	sense_range_lng = find_latlng_by_start_point_bearing((geo_rect.top_left.y,geo_rect.top_left.x),((float(radius)/screen_width) * geo_rect.width),90.0)[1]  
+	#sense_range_lat = geo_rect.top_left.y
+	#sense_range_lng = find_latlng_by_start_point_bearing((geo_rect.top_left.y,geo_rect.top_left.x),((float(radius)/screen_width) * geo_rect.width),90.0)[1]  
 
-	origin_lat = geo_rect.top_left.y
-	origin_lng = geo_rect.top_left.x
+	#origin_lat = geo_rect.top_left.y
+	#origin_lng = geo_rect.top_left.x
 
-	return geo_path,(sense_range_lat,sense_range_lng),(origin_lat,origin_lng)
+	return geo_path
 
 
 
@@ -690,10 +643,10 @@ def get_final_path(outerbounds,innerbounds1,innerbounds2,radius):
 	#poly_list = init_polys()
 	#points = init_map(800,600,30,poly_list)
 	#outer_coord_list,inner_poly_coords = convert_json_to_polys(outerbounds,innerbounds1,innerbounds2)
-	outer_coord_list,inner_poly_coords = convert_json_to_polys_2(outerbounds,innerbounds1,innerbounds2)
+	outer_coord_list,inner_poly_coords = convert_json_to_polys(outerbounds,innerbounds1,innerbounds2)
 	print(outer_coord_list)
-	#new_outer_coord_list, new_inner_polys,geo_rect,border_rect = convert_coords_geo_to_euclidean(outer_coord_list,inner_poly_coords)
-	new_outer_coord_list, new_inner_polys,geo_rect,border_rect = convert_coords_geo_to_euclidean_2(outer_coord_list,inner_poly_coords)
+	
+	new_outer_coord_list, new_inner_polys,geo_rect,border_rect,radius_euc = convert_coords_geo_to_euclidean(outer_coord_list,inner_poly_coords,radius)
 	print(new_outer_coord_list)
 	border_poly = create_poly_from_coords(new_outer_coord_list)
 	print(border_poly.get_vert_list())
@@ -702,7 +655,7 @@ def get_final_path(outerbounds,innerbounds1,innerbounds2,radius):
 		poly_list.append(create_poly_from_coords(poly))
 
 	
-	points = init_map_with_border(int(border_rect.width),int(border_rect.height),radius,poly_list,border_poly)
+	points = init_map_with_border(int(border_rect.width),int(border_rect.height),radius_euc,poly_list,border_poly)
 
 
 	# print("Creating graph")
@@ -723,8 +676,8 @@ def get_final_path(outerbounds,innerbounds1,innerbounds2,radius):
 	print("Computing..")
 	visited = calc_path(graph,connected_graph,poly_list,counter,way_lst,border_poly)
 	#geo_path,radius,origin = convert_euclidean_path_to_geo(visited,border_rect,geo_rect,radius)
-	geo_path,radius,origin = convert_euclidean_path_to_geo_2(visited,border_rect,geo_rect,radius)
-	return geo_path,radius,origin
+	geo_path = convert_euclidean_path_to_geo(visited,border_rect,geo_rect,radius)
+	return geo_path
 
 
 def calc_path(graph,connected_graph,poly_list, counter, way_lst,border_poly):
@@ -801,9 +754,9 @@ def calc_path(graph,connected_graph,poly_list, counter, way_lst,border_poly):
 
 			
 			mst = MST(graph)
-			print("Computing tree")
+			#print("Computing tree")
 			graph = mst.compute_mst()
-			print("Done Computing tree")
+			#print("Done Computing tree")
 			graph.set_node_visited(graph.find_node_from_position(way_lst[counter-1]))
 			way_lst = init_mst_way_list(graph,way_lst[counter-1])
 
@@ -863,7 +816,36 @@ def reconnect_nodes_with_graph(graph,old_graph,revived,poly_list,border_poly):
 					graph.add_edge(node_id,possible_neighbour)
 	return graph
 
-				
+
+def test_line_segment_intersect_circle(point1,point2,circle_center,radius):
+	return ((math.fabs((point2.x-point1.x)*circle_center.x + (point1.y-point2.y)*circle_center.y + (point1.x-point2.x)*point1.y + point2.x*(point2.y-point1.y)))/(math.sqrt(math.pow((point2.x-point1.x),2)+math.pow((point1.y-point2.y),2)))) < radius				
+
+
+def points_of_segment_intersect_circle(point1,point2,circle_center,radius):
+	lab = calc_euclidean_distance((point1.x,point1.y),(point2.x,point2.y))
+
+	dx = (point2.x-point1.x)/lab
+	dy = (point2.y-point1.y)/lab
+
+	t = dx * (circle_center.x-point1.x) + dy * (circle_center.y-point1.y)
+
+	ex = t * dx + ax
+	ey = t * dy + ay
+
+	lec = calc_euclidean_distance((ex,ey),(circle_center.x,circle_center.y))
+
+	if(lec < radius):
+		dt = math.sqrt(math.pow(radius,2)-math.pow(lec,2))
+
+		fx = (t-dt) * dx + point1.x
+		fy = (t-dt) * dy + point1.y
+
+		gx = (t+dt) * dx + point1.x
+		gy = (t+dt) * dy + point1.y
+
+		return (Point(fx,fy),Point(gx,gy))
+	return None
+
 
 def init_poly_list(poly_sides,num_poly):
 	# poly_list = []
@@ -893,6 +875,18 @@ def is_pos_equal(pos1,pos2):
 
 
 
-if __name__ == "__main__":
-    print(calculate_haversine_distance((17.8995586581, -76.4911508559),(17.8995586581, -76.4662771224)))
-    print(find_latlng_by_start_point_bearing((17.8995586581, -76.4911508559),2631.95772429,90))
+
+#if __name__ == "__main__":
+	
+'''pygame.init()
+screen = pygame.display.set_mode((800,800))	
+done = False
+points_list = init_radius_points(800,800,30)
+while not done:
+	for event in pygame.event.get():
+		if event.type == pygame.QUIT:
+			done = True
+	screen.fill((255,255,255))
+	draw_waypoints(screen,points_list)
+	pygame.display.flip()'''
+ 

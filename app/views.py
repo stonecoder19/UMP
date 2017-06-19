@@ -35,12 +35,12 @@ def coordinates():
         radius = request.json['radius']
     data = []
     time1 = time.time()
-    path,radius_point,origin = get_final_path(outerbounds,innerbounds1,innerbounds2,radius)
+    path = get_final_path(outerbounds,innerbounds1,innerbounds2,radius)
     time2 = time.time()
     print(str(time2-time1) + "seconds")
     print(path)
     
-    return jsonify(path=path,radius=radius_point,origin=origin)
+    return jsonify(path=path)
 
 
 

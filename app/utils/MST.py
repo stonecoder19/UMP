@@ -3,6 +3,7 @@ import sys
 from Graph import Graph
 from BHeap import BHeap
 import time
+import random
 
 class MST:
     
@@ -63,7 +64,7 @@ class MST:
                 min_from,min_to = min_el[0],min_el[1]
 
 
-          #~  min_from, min_to = self.select_min_edge(adjacency_matrix, visited)
+            #min_from, min_to = self.select_min_edge(adjacency_matrix, visited)
             count += 1
             if min_from == -1 or min_to == -1:
                 break
@@ -137,7 +138,25 @@ def main():
 
     graph = Graph()
 
-    graph.add_node('A', (2, 3))
+    num_nodes = 100
+
+
+    for i in range(0,1000):
+        graph.add_node(str(i),(random.randint(0,1000)+i,random.randint(0,1000)+i))
+
+    print("Creating graph")
+    for node_id in graph.get_nodes():
+        for neighbour_id in graph.get_nodes():
+            if(not node_id == neighbour_id):
+                graph.add_edge(node_id,neighbour_id)
+    print("Computing MST")
+    mst = MST(graph)
+    time1 = time.time()
+    new_graph = mst.compute_mst()
+    time2 = time.time()
+    print("Time taken: " + str(time2-time1))
+
+''' graph.add_node('A', (2, 3))
     graph.add_node('B', (4, 5))
     graph.add_node('C', (2, 6))
     graph.add_node('D', (3, 5))
@@ -152,18 +171,13 @@ def main():
     graph.add_edge('B', 'E')
     graph.add_edge('D', 'C')
     graph.add_edge('D', 'E')
-    graph.add_edge('C', 'E')
+    graph.add_edge('C', 'E')'''
 
     
 
-    graph.print_graph()
-
-    mst = MST(graph)
-    time1 = time.time()
-    new_graph = mst.compute_mst()
-    time2 = time.time()
-    print("Time taken: " + str(time2-time1))
-    new_graph.print_graph()
+    #graph.print_graph()
+    
+    #new_graph.print_graph()
 
 
 
